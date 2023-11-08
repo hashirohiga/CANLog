@@ -1,0 +1,418 @@
+﻿<Window
+        x:Class="InterraCAN.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:oxy="http://oxyplot.org/wpf"
+        xmlns:main="clr-namespace:InterraCAN"
+        mc:Ignorable="d"
+        Title="InterraCAN" Height="450" Width="1000"
+        WindowStartupLocation="CenterScreen"
+        FontFamily="Cascadia Code">
+    <Grid>
+        
+        <TabControl>
+            <TabItem
+                Header="Входные данные">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="0.7*"/>
+                        <ColumnDefinition Width="0.4*"/>
+                        <ColumnDefinition Width="0.4*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="25"/>
+                    </Grid.RowDefinitions>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <StackPanel
+                            Orientation="Horizontal">
+                            <Label
+                                Margin="20,5,0,0"
+                                Content="Cкорость шины: "/>
+                            <Label
+                                Margin="0,5,0,0"
+                                x:Name="Label_Speed_CAN"
+                                Content="0"/>
+                            <Label
+                                Margin="5,5,0,0"
+                                Content="кБод"/>
+                        </StackPanel>
+                        <TextBox
+                        Visibility="Hidden"
+                        Grid.Row="1"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        Margin="20,5,10,10"
+                        VerticalScrollBarVisibility="Visible"
+                        IsReadOnly="True"
+                        HorizontalContentAlignment="Left"
+                        x:Name="TB_List" FontFamily="Cascadia Code"/>
+                    </Grid>
+                    <StackPanel
+                        HorizontalAlignment="Left"
+                        Grid.Column="1"
+                        Orientation="Vertical">
+                        <CheckBox
+                            Margin="5"
+                            Content="Удалить не меняющиеся теги"
+                            HorizontalAlignment="Stretch"
+                            x:Name="CheckBox_Filter"/>
+                        <Button
+                            Width="120"
+                            Height="25"
+                            Margin="5"
+                            Content="CANNY"/>
+                        <Button
+                            Width="120"
+                            Height="25"
+                            Margin="5"
+                            Content="ACE"
+                            Click="Btn_ACE"/>
+                        <Button
+                            Width="120"
+                            Height="25"
+                            Margin="5"
+                            Content="Еще ACE"
+                            Click="Button_Click"/>
+                        <Button
+                            Width="120"
+                            Height="25"
+                            Margin="5"
+                            Content="Galileo+"/>
+                        <Button
+                            Width="120"
+                            Height="25"
+                            Margin="5"
+                            Content="Galileo+"/>
+                        <StackPanel
+                            Orientation="Horizontal">
+                            <Label
+                                Margin="5"
+                                Content="Сообщений на входе"/>
+                            <Label
+                                Margin="5"
+                                Content="0"
+                                x:Name="Label_Msg_In"/>
+                        </StackPanel>
+                        <StackPanel
+                                 Orientation="Horizontal">
+                            <Label
+                                Margin="5"
+                                Content="Уникальных сообщений"/>
+                            <Label
+                                Margin="5"
+                                Content="0"
+                                x:Name="Label_Msq_Unique"/>
+                        </StackPanel>
+
+                    </StackPanel>
+                    <ProgressBar
+                        
+                        x:Name="PB_Load"
+                        Grid.Row="1"
+                        Minimum="0" Maximum="115"
+                        />
+                </Grid>
+            </TabItem>
+            <TabItem
+                Header="Анализ"
+                Name="Tab_Charts"
+                IsEnabled="False"
+                >
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="0.1*"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Stretch"/>
+                    <!--Charts-->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="0.05*"/>
+                                <RowDefinition Height="0.05*"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <ComboBox
+                                    Name="CB_FilterOneByte"
+                                    SelectionChanged="CB_FilterOneByte_SelectionChanged"/>
+
+                            <Label
+                                Grid.Row="1"
+                                Name="LabelOneByte"/>
+                            <ListBox
+                                
+                                Grid.Row="2"
+                                x:Name="LB_Uniq"
+                                VerticalContentAlignment="Bottom"
+                                SelectionChanged="Lb_Uniq_SelectionChanged"
+                                ScrollViewer.VerticalScrollBarVisibility="Visible"
+                                ScrollViewer.CanContentScroll="True"
+                                ScrollBar.Scroll="LB_Uniq_Scroll"
+                                Mouse.PreviewMouseWheel="LB_Uniq_PreviewMouseWheel">
+                                <ListBox.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Пометить как интересный" Click="MenuItemGreen_Click"/>
+                                        <MenuItem Header="Пометить как неинтересный" Click="MenuItemRed_Click"/>
+                                        <MenuItem Header="Снять пометку" Click="MenuItemClear_Click"/>
+                                        <Separator/>
+                                        <MenuItem Header="Скрыть помеченные неинтересными" Click="MenuItemHideItems_Click"/>
+                                        <MenuItem Header="Отобразить только интересные" Click="MenuItemShowGreenItems_Click"/>
+                                        <MenuItem Header="Отобразить все идентификаторы" Click="MenuItemShowAllItems_Click"/>
+                                        <Separator/>
+                                        <MenuItem x:Name="MenuItemAddCommit" Header="Добавить комментарий" Click="MenuItemAddCommit_Click"/>
+                                        <MenuItem x:Name="MenuItemEditCommit" Header="Редактировать комментарий" Click="MenuItemEditCommit_Click" Visibility="Collapsed"/>
+                                    </ContextMenu>
+                                </ListBox.ContextMenu>
+                            </ListBox>
+                        </Grid>
+
+                        <TabControl
+                           Name="TabControl_Analize"
+                            Grid.Column="1"
+                            SelectionChanged="TabControl_Analize_SelectionChanged"
+                            >
+                            <TabItem
+                                Header="график побайтно"
+                                Name="TabItemOneByte">
+                                <Grid>
+                                    <Grid.Resources>
+
+                                    </Grid.Resources>
+                                    <!--Width="1800"-->
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition/>
+                                        <RowDefinition/>
+                                    </Grid.RowDefinitions>
+                                    <!--chart0-->
+                                    <oxy:PlotView x:Name="plotByte0">
+                                        <oxy:PlotView.InputBindings>
+                                            <!--<MouseBinding MouseAction="Shift+LeftClick" Command=""/>-->
+                                            <!--<MouseBinding Gesture="Shift+LeftClick" Command="{Binding ShiftAndLeftClick}"/>-->
+                                        </oxy:PlotView.InputBindings>
+                                        <!--<oxy:PlotView.TrackerDefinitions>
+                                            <oxy:TrackerDefinition TrackerKey="Invisible">
+                                                <oxy:TrackerDefinition.TrackerTemplate>
+                                                    <ControlTemplate>
+                                                        <TextBlock Text="{Binding}" Visibility="Collapsed"/>
+                                                    </ControlTemplate>
+                                                </oxy:TrackerDefinition.TrackerTemplate>
+                                            </oxy:TrackerDefinition>
+                                        </oxy:PlotView.TrackerDefinitions>-->
+                                    </oxy:PlotView>
+
+                                    <!--chart2-->
+                                    <oxy:PlotView 
+                                     Grid.Column="1"               
+                                     x:Name="plotByte2">
+                                    </oxy:PlotView>
+
+
+                                    <!--chart4-->
+                                    <oxy:PlotView 
+                                     Grid.Column="2"               
+                                     x:Name="plotByte4">
+                                    </oxy:PlotView>
+
+                                    <!--</lvc:CartesianChart>-->
+                                    <!--chart6-->
+                                    <oxy:PlotView 
+                                     Grid.Column="3"               
+                                     x:Name="plotByte6">
+                                    </oxy:PlotView>
+                                    <!--chart1-->
+                                    <oxy:PlotView 
+                                     Grid.Row="1"               
+                                     x:Name="plotByte1">
+                                    </oxy:PlotView>
+                                    <!--chart3-->
+                                    <oxy:PlotView 
+                                     Grid.Column="1"
+                                     Grid.Row = "1"
+                                     x:Name="plotByte3">
+                                    </oxy:PlotView>
+                                    <!--chart5-->
+                                    <oxy:PlotView 
+                                     Grid.Column="2"
+                                     Grid.Row = "1"
+                                     x:Name="plotByte5">
+                                    </oxy:PlotView>
+                                    <!--chart7-->
+                                    <oxy:PlotView 
+                                     Grid.Column="3"
+                                     Grid.Row = "1"
+                                     x:Name="plotByte7">
+                                    </oxy:PlotView>
+                                </Grid>
+
+                                <!--</ScrollViewer>-->
+                            </TabItem>
+                            <TabItem Header="график 2x little endian"
+                                     Name="Tab2xLE">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition/>
+                                        <RowDefinition/>
+                                    </Grid.RowDefinitions>
+                                    <oxy:PlotView 
+                                     x:Name="plotByte01LE">
+                                    </oxy:PlotView>
+                                    <oxy:PlotView 
+                                     Grid.Column="1"
+                                     x:Name="plotByte23LE">
+                                    </oxy:PlotView>
+
+                                    <oxy:PlotView 
+                                     Grid.Row="1"
+                                     x:Name="plotByte45LE">
+                                    </oxy:PlotView>
+
+                                    <oxy:PlotView
+                                     Grid.Column="1"
+                                     Grid.Row="1"
+                                     x:Name="plotByte67LE">
+                                    </oxy:PlotView>
+
+                                </Grid>
+                            </TabItem>
+                            <TabItem Header="график 2x big endian"
+                                     Name="Tab2xBE">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition/>
+                                        <RowDefinition/>
+                                    </Grid.RowDefinitions>
+                                    <oxy:PlotView
+                                     x:Name="plotByte10BE">
+                                    </oxy:PlotView>
+
+                                    <oxy:PlotView
+                                     Grid.Row="1"
+                                     x:Name="plotByte32BE">
+                                    </oxy:PlotView>
+
+                                    <oxy:PlotView
+                                     Grid.Column="1"
+                                     x:Name="plotByte54BE">
+                                    </oxy:PlotView>
+
+                                    <oxy:PlotView
+                                     Grid.Column="1"
+                                     Grid.Row="1"
+                                     x:Name="plotByte76BE">
+                                    </oxy:PlotView>
+
+                                </Grid>
+                            </TabItem>
+                            <TabItem Header="Сообщения"
+                                     Name="Tab_Msg">
+                                <ListBox
+                                    Width="300"
+                                    Name="LB_Messages"
+                                    HorizontalAlignment="Left"
+                                    ScrollViewer.VerticalScrollBarVisibility="Visible"/>
+                            </TabItem>
+                            <TabItem Header="График произвольный"/>
+                        </TabControl>
+                    </Grid>
+                    <!--footer-->
+                    <Grid
+                        Grid.Row="1">
+                        <StackPanel
+                            Orientation="Horizontal">
+                            <Button
+                                Content="Сохранить"
+                                Width="100"
+                                Margin="3"
+                                Click="BtnSaveToFile_Click"/>
+                            <Button
+                                Content="Импорт"
+                                Width="100"
+                                Margin="3"
+                                Click="BtnReadFile_Click"/>
+                        </StackPanel>
+                        <Label
+                                Width="150"
+                                HorizontalAlignment="Right"
+                                Name="Label_Timing"
+                                VerticalAlignment="Bottom"
+                                Height="30"
+                                Background="White"
+                                Foreground="Black"
+                                Margin="3,0,0,0"
+                                VerticalContentAlignment="Top"    
+                            />
+
+                    </Grid>
+                </Grid>
+            </TabItem>
+        </TabControl>
+        <Popup
+            Name="myPopup"
+            Placement="Center"
+            Height="260"
+            Width="300">
+            <Border
+                BorderThickness="1"
+                BorderBrush="Black">
+                <StackPanel
+                
+                Background="AliceBlue">
+                    <Label
+                    Height="40"
+                    Content="Комментарий"
+                    Margin="5"/>
+                    <TextBox
+                    Name="TB_Commit"
+                    AcceptsReturn="True"
+                    TextWrapping="WrapWithOverflow"
+                    Height="120"
+                    Margin="5"/>
+                    <StackPanel
+                    HorizontalAlignment="Center"
+                    Orientation="Horizontal">
+                        <Button
+                    Content="Сохранить"
+                    Height="40"
+                    Width="120"
+                    Margin="5"
+                    Click="BtnSaveCommit"/>
+                        <Button
+                    Content="Отмена"
+                    Height="40"
+                    Width="120"
+                    Margin="5"
+                    Click="BtnCommitCancel"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Popup>
+    </Grid>
+</Window>
