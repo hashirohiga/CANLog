@@ -11,7 +11,7 @@
         WindowStartupLocation="CenterScreen"
         FontFamily="Cascadia Code">
     <Grid>
-        
+
         <TabControl>
             <TabItem
                 Header="Входные данные">
@@ -84,12 +84,20 @@
                             Width="120"
                             Height="25"
                             Margin="5"
-                            Content="Galileo+"/>
+                            Content="Galileo"/>
                         <Button
                             Width="120"
                             Height="25"
                             Margin="5"
                             Content="Galileo+"/>
+                        <Button
+                            x:Name="Btn_PRN"
+                            Width="120"
+                            Height="25"
+                            Margin="5"
+                            Content="PRM"
+                            
+                            Click="Btn_PRM_CLick"/>
                         <StackPanel
                             Orientation="Horizontal">
                             <Label
@@ -203,64 +211,108 @@
                                         <RowDefinition/>
                                     </Grid.RowDefinitions>
                                     <!--chart0-->
-                                    <oxy:PlotView x:Name="plotByte0">
-                                        <oxy:PlotView.InputBindings>
-                                            <!--<MouseBinding MouseAction="Shift+LeftClick" Command=""/>-->
-                                            <!--<MouseBinding Gesture="Shift+LeftClick" Command="{Binding ShiftAndLeftClick}"/>-->
-                                        </oxy:PlotView.InputBindings>
-                                        <!--<oxy:PlotView.TrackerDefinitions>
-                                            <oxy:TrackerDefinition TrackerKey="Invisible">
-                                                <oxy:TrackerDefinition.TrackerTemplate>
-                                                    <ControlTemplate>
-                                                        <TextBlock Text="{Binding}" Visibility="Collapsed"/>
-                                                    </ControlTemplate>
-                                                </oxy:TrackerDefinition.TrackerTemplate>
-                                            </oxy:TrackerDefinition>
-                                        </oxy:PlotView.TrackerDefinitions>-->
-                                    </oxy:PlotView>
+
+                                    <StackPanel>
+                                        <ComboBox
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Height="20" Grid.IsSharedSizeScope="True"/>
+                                        <oxy:PlotView x:Name="plotByte0"
+                                                      Height="150">
+                                        </oxy:PlotView>
+                                    </StackPanel>
+                                        
+
+
+
 
                                     <!--chart2-->
+                                    <ComboBox
+                                        Grid.Column="1"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Panel.ZIndex="1"
+                                        Width="20"
+                                        Height="20"/>
                                     <oxy:PlotView 
                                      Grid.Column="1"               
-                                     x:Name="plotByte2">
-                                    </oxy:PlotView>
+                                     x:Name="plotByte2"/>
 
 
                                     <!--chart4-->
+                                    <ComboBox
+                                        Grid.Column="2"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        Panel.ZIndex="1"
+                                        Width="20"
+                                        Height="20"/>
                                     <oxy:PlotView 
                                      Grid.Column="2"               
-                                     x:Name="plotByte4">
-                                    </oxy:PlotView>
+                                     x:Name="plotByte4"/>
 
-                                    <!--</lvc:CartesianChart>-->
                                     <!--chart6-->
+                                    <ComboBox
+                                        Grid.Column="3"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top" IsDropDownOpen="False"
+                                        Panel.ZIndex="1"
+                                        Width="20"
+                                        Height="20"/>
                                     <oxy:PlotView 
                                      Grid.Column="3"               
-                                     x:Name="plotByte6">
-                                    </oxy:PlotView>
+                                     x:Name="plotByte6"/>
                                     <!--chart1-->
+                                    <ComboBox
+                                        Grid.Row="1"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top" IsDropDownOpen="False"
+                                        Panel.ZIndex="1"
+                                        Width="20"
+                                        Height="20"/>
                                     <oxy:PlotView 
                                      Grid.Row="1"               
-                                     x:Name="plotByte1">
-                                    </oxy:PlotView>
+                                     x:Name="plotByte1"/>
+
                                     <!--chart3-->
+                                    <ComboBox
+                                        Grid.Column="1"
+                                        Grid.Row="1"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top" IsDropDownOpen="False"
+                                        Panel.ZIndex="1"
+                                        Width="20"
+                                        Height="20"/>
                                     <oxy:PlotView 
                                      Grid.Column="1"
                                      Grid.Row = "1"
-                                     x:Name="plotByte3">
-                                    </oxy:PlotView>
+                                     x:Name="plotByte3"/>
                                     <!--chart5-->
+                                    <ComboBox
+                                        Grid.Column="2"
+                                        Grid.Row="1"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top" IsDropDownOpen="False"
+                                        Panel.ZIndex="1"
+                                        Width="20"
+                                        Height="20"/>
                                     <oxy:PlotView 
                                      Grid.Column="2"
                                      Grid.Row = "1"
-                                     x:Name="plotByte5">
-                                    </oxy:PlotView>
+                                     x:Name="plotByte5"/>
                                     <!--chart7-->
+                                    <ComboBox
+                                        Grid.Column="3"
+                                        Grid.Row="1"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top" IsDropDownOpen="False"
+                                        Panel.ZIndex="1"
+                                        Width="20"
+                                        Height="20"/>
                                     <oxy:PlotView 
                                      Grid.Column="3"
                                      Grid.Row = "1"
-                                     x:Name="plotByte7">
-                                    </oxy:PlotView>
+                                     x:Name="plotByte7"/>
                                 </Grid>
 
                                 <!--</ScrollViewer>-->
@@ -301,7 +353,7 @@
                                      Name="Tab2xBE">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        
+
                                         <ColumnDefinition/>
                                         <ColumnDefinition/>
                                     </Grid.ColumnDefinitions>

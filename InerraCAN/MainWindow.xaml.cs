@@ -55,7 +55,7 @@ namespace InterraCAN
         {
             InitializeComponent();
             this.Show();
-
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
 
         //Dictionary<string, Dictionary<int, List<string>>> messages = new Dictionary<string, Dictionary<int, List<string>>>();
@@ -115,21 +115,22 @@ namespace InterraCAN
                 
                 if (_currentFile.FileName != "")
                 {
+                    
                     TB_List.Visibility = Visibility.Hidden;
                     PB_Load.Value = 0;
                     TB_List.Clear();
                     string filename = _currentFile.FileName;
                     string files = System.IO.File.ReadAllText(filename);
-                if (_files != null)
-                {
-                        int index = files.IndexOf("  ");
-                        files = files.Remove(0, index);
-                        _files = _files + files;
-                }
-                else
-                {
-                    _files = files;
-                }
+                    if (_files != null)
+                    {
+                            int index = files.IndexOf("  ");
+                            files = files.Remove(0, index);
+                            _files = _files + files;
+                    }
+                    else
+                    {
+                        _files = files;
+                    }
                     List<string> words = new List<string>();
                     words = _files.Split('\n').ToList();
                     var oneWord = words[0];
@@ -1556,10 +1557,18 @@ namespace InterraCAN
         private void TabControl_Analize_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
 
-            
+            if (Tab_Msg.IsSelected == true)
+            {
+                //plotByte0.IsMouseOver = false;
+                //plotByte0.IsMouseCaptureWithin = false;
+                //plotByte0.IsMouseCaptured = false;
+                //plotByte0.IsMouseDirectlyOver = false;
+                plotByte0.TrackerDefinitions.Clear();
+            }
 
             if (TabItemOneByte.IsSelected == true && LB_Uniq.SelectedItem != null)
             {
+                
                 //TabItemOneByte.Refresh();
                 string msgId = (string)LB_Uniq.SelectedItem;
                 LB_Uniq.SelectedIndex = -1;
@@ -1614,33 +1623,38 @@ namespace InterraCAN
 
         private void CB_FilterOneByte_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-
-            if (TabItemOneByte.IsSelected == true)
+            CB_FilterOneByte.IsDropDownOpen = false;
+            //CB_FilterOneByte.
+            if (CB_FilterOneByte.SelectedItem != _itemByteSelected)
             {
-                plotByte0.Visibility = Visibility.Hidden;
-                plotByte1.Visibility = Visibility.Hidden;
-                plotByte2.Visibility = Visibility.Hidden;
-                plotByte3.Visibility = Visibility.Hidden;
-                plotByte4.Visibility = Visibility.Hidden;
-                plotByte5.Visibility = Visibility.Hidden;
-                plotByte6.Visibility = Visibility.Hidden;
-                plotByte7.Visibility = Visibility.Hidden;
-                if (CB_FilterOneByte.SelectedItem != null)
+                if (TabItemOneByte.IsSelected == true)
                 {
-                    _itemByteSelected = (string)CB_FilterOneByte.SelectedItem;
+                    plotByte0.Visibility = Visibility.Hidden;
+                    plotByte1.Visibility = Visibility.Hidden;
+                    plotByte2.Visibility = Visibility.Hidden;
+                    plotByte3.Visibility = Visibility.Hidden;
+                    plotByte4.Visibility = Visibility.Hidden;
+                    plotByte5.Visibility = Visibility.Hidden;
+                    plotByte6.Visibility = Visibility.Hidden;
+                    plotByte7.Visibility = Visibility.Hidden;
+                    if (CB_FilterOneByte.SelectedItem != null)
+                    {
+                        _itemByteSelected = (string)CB_FilterOneByte.SelectedItem;
+
+                    }
+                    //TabItemOneByte.Refresh();
+                    string msgId = (string)LB_Uniq.SelectedItem;
+                    LB_Uniq.SelectedIndex = -1;
+                    plotByte0.Visibility = Visibility.Visible;
+                    plotByte1.Visibility = Visibility.Visible;
+                    plotByte2.Visibility = Visibility.Visible;
+                    plotByte3.Visibility = Visibility.Visible;
+                    plotByte4.Visibility = Visibility.Visible;
+                    plotByte5.Visibility = Visibility.Visible;
+                    plotByte6.Visibility = Visibility.Visible;
+                    plotByte7.Visibility = Visibility.Visible;
+                    LB_Uniq.SelectedItem = msgId;
                 }
-                //TabItemOneByte.Refresh();
-                string msgId = (string)LB_Uniq.SelectedItem;
-                LB_Uniq.SelectedIndex = -1;
-                plotByte0.Visibility = Visibility.Visible;
-                plotByte1.Visibility = Visibility.Visible;
-                plotByte2.Visibility = Visibility.Visible;
-                plotByte3.Visibility = Visibility.Visible;
-                plotByte4.Visibility = Visibility.Visible;
-                plotByte5.Visibility = Visibility.Visible;
-                plotByte6.Visibility = Visibility.Visible;
-                plotByte7.Visibility = Visibility.Visible;
-                LB_Uniq.SelectedItem = msgId;
             }
         }
 
@@ -1665,7 +1679,7 @@ namespace InterraCAN
 
         //            throw;
         //        }
-                
+
         //    }
         //    else
         //    {
@@ -2106,7 +2120,78 @@ namespace InterraCAN
         #endregion
         //public static RoutedCommand ShiftAndLeftClick = new RoutedCommand();
         CommandBinding ShiftAndLeftClick = new CommandBinding();
-        
+
+        private void Btn_PRM_CLick(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            if (ofd.FileName == "")
+            {
+                
+                ofd.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
+                ofd.ShowDialog();
+                string filename = ofd.FileName;
+                string files = System.IO.File.ReadAllText(filename, Encoding.GetEncoding(1251));
+                //\r\n\r\n\r\n
+                List<string> words = files.Split("\r\n\r\n\r\n").ToList();
+                words.RemoveAt(0);
+                for (int i = 0; i < words.Count; i++)
+                {
+                    if (words[i] == "")
+                    {
+                        words.RemoveAt(i);
+                        i--;
+                    }
+                    else
+                    {
+                        //byte[] bytes = Encoding.Default.GetBytes(words[i]);
+                        //string encodeWord = Encoding.Unicode.GetString(bytes);
+                        int firstIndex = words[i].IndexOf("0");
+                        int lastIndex = words[i].IndexOf("\r", firstIndex);
+                        
+                        string IdAdress = words[i].Substring(firstIndex, lastIndex - firstIndex);
+                        if (_uniqId.Find(u => u.Contains(IdAdress)) != null)
+                        {
+                            _commits.Add(_uniqId.FindIndex(u => u.Contains(IdAdress)), words[i]);
+                        }
+                        int y = 0;
+                    }
+                }
+
+            }
+        }
+
+        //private void CB_FilterOneByte_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        //{
+        //    if (TabItemOneByte.IsSelected == true)
+        //    {
+        //        plotByte0.Visibility = Visibility.Hidden;
+        //        plotByte1.Visibility = Visibility.Hidden;
+        //        plotByte2.Visibility = Visibility.Hidden;
+        //        plotByte3.Visibility = Visibility.Hidden;
+        //        plotByte4.Visibility = Visibility.Hidden;
+        //        plotByte5.Visibility = Visibility.Hidden;
+        //        plotByte6.Visibility = Visibility.Hidden;
+        //        plotByte7.Visibility = Visibility.Hidden;
+        //        if (CB_FilterOneByte.SelectedItem != null)
+        //        {
+        //            _itemByteSelected = (string)CB_FilterOneByte.SelectedItem;
+
+        //        }
+        //        //TabItemOneByte.Refresh();
+        //        string msgId = (string)LB_Uniq.SelectedItem;
+        //        LB_Uniq.SelectedIndex = -1;
+        //        plotByte0.Visibility = Visibility.Visible;
+        //        plotByte1.Visibility = Visibility.Visible;
+        //        plotByte2.Visibility = Visibility.Visible;
+        //        plotByte3.Visibility = Visibility.Visible;
+        //        plotByte4.Visibility = Visibility.Visible;
+        //        plotByte5.Visibility = Visibility.Visible;
+        //        plotByte6.Visibility = Visibility.Visible;
+        //        plotByte7.Visibility = Visibility.Visible;
+        //        LB_Uniq.SelectedItem = msgId;
+        //    }
+        //}
+
 
         //if (TabItemOneByte.IsSelected = true)
         //{
