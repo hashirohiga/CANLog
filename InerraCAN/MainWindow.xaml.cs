@@ -60,9 +60,13 @@ namespace InterraCAN
 
         //Dictionary<string, Dictionary<int, List<string>>> messages = new Dictionary<string, Dictionary<int, List<string>>>();
         public Dictionary<string, List<List<string>>> _messages;
+        Dictionary<int, string> _comboBoxValues = new Dictionary<int, string>();
         List<string> _uniqId;
         List<string> _distinctData;
-        List<string> _files0 = new List<string>();
+        List<string> _files0 = new List<string>();         List<string> _files4 = new List<string>();
+        List<string> _files1 = new List<string>();         List<string> _files5 = new List<string>();
+        List<string> _files2 = new List<string>();         List<string> _files6 = new List<string>();
+        List<string> _files3 = new List<string>();         List<string> _files7 = new List<string>();
         List<string> _dataTime = new List<string>();
         List<string> _timings = new List<string>();
         List<int> _greenIndex = new List<int>();
@@ -70,10 +74,24 @@ namespace InterraCAN
         Dictionary<int, string> _commits = new Dictionary<int, string>();
         //int _byteSelected;
         string _idForCBox;
-        string _itemByteSelected;
+        string _itemByte0Selected;
+        string _itemByte1Selected;
+        string _itemByte2Selected;
+        string _itemByte3Selected;
+        string _itemByte4Selected;
+        string _itemByte5Selected;
+        string _itemByte6Selected;
+        string _itemByte7Selected;
         bool _key = new bool();
         //int _itemsCount;
         List<string> _listForCBox = new List<string>();
+        List<string> _list1ForCBox = new List<string>();
+        List<string> _list2ForCBox = new List<string>();
+        List<string> _list3ForCBox = new List<string>();
+        List<string> _list4ForCBox = new List<string>();
+        List<string> _list5ForCBox = new List<string>();
+        List<string> _list6ForCBox = new List<string>();
+        List<string> _list7ForCBox = new List<string>();
         ListBox _markedUniqId = new ListBox();
         OpenFileDialog _currentFile = new OpenFileDialog();
         string _selectedID;
@@ -392,7 +410,14 @@ namespace InterraCAN
             //LB_Uniq.SelectedItem = _selectedID;
                 List<string> timing = new List<string>();
                 List<string> massOneByte = new List<string>();
-                List<float> massByte0 = new List<float>(); List<int> y0 = new List<int>();
+                List<string> massOneByte1 = new List<string>();
+                List<string> massOneByte2 = new List<string>();
+                List<string> massOneByte3 = new List<string>();
+                List<string> massOneByte4 = new List<string>();
+                List<string> massOneByte5 = new List<string>();
+                List<string> massOneByte6 = new List<string>();
+                List<string> massOneByte7 = new List<string>();
+            List<float> massByte0 = new List<float>(); List<int> y0 = new List<int>();
                 List<float> massByte1 = new List<float>(); 
                 List<float> massByte2 = new List<float>(); 
                 List<float> massByte3 = new List<float>(); 
@@ -418,15 +443,16 @@ namespace InterraCAN
                 string dataPlace;
             //if (LB_Uniq.SelectedItem != null)
             //{
-
-            if (_selectedID != null)
+            string identy = string.Empty;
+            if (_selectedID != null )
             {
+                
                 int range;
                 timing.Clear();
                 timing = _dataTime.FindAll(t => t.Contains(_selectedID));
                 if (CB_FilterOneByte.SelectedIndex == 0)
                 {
-                    CB_FilterOneByte.Items.Clear();
+                    //CB_FilterOneByte.Items.Clear();
                     LabelOneByte.Content = ("без фильтра"); 
 
                 }
@@ -435,7 +461,34 @@ namespace InterraCAN
                     LabelOneByte.Content = " ";
 
                 }
-                if (CB_FilterOneByte.Items.Count == 0 || CB_FilterOneByte.SelectedIndex == -1 && CB_FilterOneByte.SelectedItem == null)
+                if (CB_FilterOneByte.Items.Count == 0 &&
+                    CB_FilterByte1.Items.Count == 0 &&
+                    CB_FilterByte2.Items.Count == 0 && 
+                    CB_FilterByte3.Items.Count == 0 && 
+                    CB_FilterByte4.Items.Count == 0 && 
+                    CB_FilterByte5.Items.Count == 0 && 
+                    CB_FilterByte6.Items.Count == 0 && 
+                    CB_FilterByte7.Items.Count == 0 ||
+                    (CB_FilterOneByte.SelectedIndex == -1 ||    CB_FilterOneByte.SelectedIndex == 0) &&
+                    (CB_FilterByte1.SelectedIndex == -1  ||     CB_FilterByte1.SelectedIndex == 0)   &&
+                    (CB_FilterByte2.SelectedIndex == -1  ||     CB_FilterByte2.SelectedIndex == 0)   &&
+                    (CB_FilterByte3.SelectedIndex == -1  ||     CB_FilterByte3.SelectedIndex == 0)   &&
+                    (CB_FilterByte4.SelectedIndex == -1  ||     CB_FilterByte4.SelectedIndex == 0)   &&
+                    (CB_FilterByte5.SelectedIndex == -1  ||     CB_FilterByte5.SelectedIndex == 0)   &&
+                    (CB_FilterByte6.SelectedIndex == -1  ||     CB_FilterByte6.SelectedIndex == 0)   &&
+                    (CB_FilterByte7.SelectedIndex == -1 ||      CB_FilterByte7.SelectedIndex == 0))
+
+
+
+
+                //CB_FilterOneByte.Items.Count == 0 || CB_FilterOneByte.SelectedIndex == -1 || CB_FilterOneByte.SelectedIndex == 0 ||
+                //CB_FilterByte1.Items.Count == 0 || CB_FilterByte1.SelectedIndex == -1 || CB_FilterByte1.SelectedIndex == 0 ||
+                //CB_FilterByte2.Items.Count == 0 || CB_FilterByte2.SelectedIndex == -1 || CB_FilterByte2.SelectedIndex == 0 ||
+                //CB_FilterByte3.Items.Count == 0 || CB_FilterByte3.SelectedIndex == -1 || CB_FilterByte3.SelectedIndex == 0 ||
+                //CB_FilterByte4.Items.Count == 0 || CB_FilterByte4.SelectedIndex == -1 || CB_FilterByte4.SelectedIndex == 0 ||
+                //CB_FilterByte5.Items.Count == 0 || CB_FilterByte5.SelectedIndex == -1 || CB_FilterByte5.SelectedIndex == 0 ||
+                //CB_FilterByte6.Items.Count == 0 || CB_FilterByte6.SelectedIndex == -1 || CB_FilterByte6.SelectedIndex == 0 ||
+                //CB_FilterByte7.Items.Count == 0 || CB_FilterByte7.SelectedIndex == -1 || CB_FilterByte7.SelectedIndex == 0 )
                 {
                     for (int i = 0; i < timing.Count; i++)
                     {
@@ -459,6 +512,14 @@ namespace InterraCAN
                     {
                         y0.Add(i);
                         massOneByte.Add(Convert.ToString(_messages[_selectedID][i][0]));
+                        massOneByte1.Add(Convert.ToString(_messages[_selectedID][i][1]));
+                        massOneByte2.Add(Convert.ToString(_messages[_selectedID][i][2]));
+                        massOneByte3.Add(Convert.ToString(_messages[_selectedID][i][3]));
+                        massOneByte4.Add(Convert.ToString(_messages[_selectedID][i][4]));
+                        massOneByte5.Add(Convert.ToString(_messages[_selectedID][i][5]));
+                        massOneByte6.Add(Convert.ToString(_messages[_selectedID][i][6]));
+                        massOneByte7.Add(Convert.ToString(_messages[_selectedID][i][7]));
+
                         massByte0.Add(Convert.FromHexString(_messages[_selectedID][i][0]).ToList()[0]);
                         massByte1.Add(Convert.FromHexString(_messages[_selectedID][i][1]).ToList()[0]);
                         massByte2.Add(Convert.FromHexString(_messages[_selectedID][i][2]).ToList()[0]);
@@ -490,21 +551,78 @@ namespace InterraCAN
                     //}
                     //(_messages[_selectedID][i][0].Contains(CB_FilterOneByte.SelectedItem))
                 }
-                else if (CB_FilterOneByte.Items.Count != 0 && CB_FilterOneByte.SelectedIndex != 0)
+                else if ((CB_FilterOneByte.Items.Count != 0 && CB_FilterOneByte.SelectedIndex > 0) ||
+                         (CB_FilterByte1.Items.Count != 0 && CB_FilterByte1.SelectedIndex > 0) ||
+                         (CB_FilterByte2.Items.Count != 0 && CB_FilterByte2.SelectedIndex > 0) ||
+                         (CB_FilterByte3.Items.Count != 0 && CB_FilterByte3.SelectedIndex > 0) ||
+                         (CB_FilterByte4.Items.Count != 0 && CB_FilterByte4.SelectedIndex > 0) ||
+                         (CB_FilterByte5.Items.Count != 0 && CB_FilterByte5.SelectedIndex > 0) ||
+                         (CB_FilterByte6.Items.Count != 0 && CB_FilterByte6.SelectedIndex > 0) ||
+                         (CB_FilterByte7.Items.Count != 0 && CB_FilterByte7.SelectedIndex > 0))
                 {
-                    int index = 0;
-                    
+
+                    int count;
+                    List<int> keys = _comboBoxValues.Keys.ToList();
+                    //for (int i = 0; i < _messages[_selectedID].Count; i++)
+                    //{
+                    //    count = 0;
+                    //    for (int k = 0; k < _comboBoxValues.Count; k++)
+                    //    {
+                    //        if (_messages[_selectedID][i][keys[k]].Contains(_comboBoxValues[k]))
+                    //        {
+                    //            count++;
+                    //        }
+                    //        if (count == _comboBoxValues.Count)
+                    //        {
+                    //            massByte0.Add(Convert.FromHexString(_messages[_selectedID][i][0]).ToList()[0]);
+                    //            massByte1.Add(Convert.FromHexString(_messages[_selectedID][i][1]).ToList()[0]);
+                    //            massByte2.Add(Convert.FromHexString(_messages[_selectedID][i][2]).ToList()[0]);
+                    //            massByte3.Add(Convert.FromHexString(_messages[_selectedID][i][3]).ToList()[0]);
+                    //            massByte4.Add(Convert.FromHexString(_messages[_selectedID][i][4]).ToList()[0]);
+                    //            massByte5.Add(Convert.FromHexString(_messages[_selectedID][i][5]).ToList()[0]);
+                    //            massByte6.Add(Convert.FromHexString(_messages[_selectedID][i][6]).ToList()[0]);
+                    //            massByte7.Add(Convert.FromHexString(_messages[_selectedID][i][7]).ToList()[0]);
+                    //        }
+                    //    }
+                    //}
                     for (int i = 0; i < _messages[_selectedID].Count; i++)
                     {
-                            massOneByte.Add(Convert.ToString(_messages[_selectedID][i][0]));
 
-                        //if (TabItemOneByte.IsSelected == true && _messages[_selectedID][i][0].Contains((string)CB_FilterOneByte.SelectedItem) == true)
-                        if (CB_FilterOneByte.SelectedItem != null)
+                            massOneByte.Add(Convert.ToString(_messages[_selectedID][i][0]));
+                            massOneByte1.Add(Convert.ToString(_messages[_selectedID][i][1]));
+                            massOneByte2.Add(Convert.ToString(_messages[_selectedID][i][2]));
+                            massOneByte3.Add(Convert.ToString(_messages[_selectedID][i][3]));
+                            massOneByte4.Add(Convert.ToString(_messages[_selectedID][i][4]));
+                            massOneByte5.Add(Convert.ToString(_messages[_selectedID][i][5]));
+                            massOneByte6.Add(Convert.ToString(_messages[_selectedID][i][6]));
+                            massOneByte7.Add(Convert.ToString(_messages[_selectedID][i][7]));
+
+
+                        //if (CB_FilterOneByte.SelectedItem != null)
+                        //{
+
+                        //    if (TabItemOneByte.IsSelected == true && _messages[_selectedID][i][0].Contains(_itemByte0Selected) == true)
+                        //    {
+
+                        //        massByte0.Add(Convert.FromHexString(_messages[_selectedID][i][0]).ToList()[0]);
+                        //        massByte1.Add(Convert.FromHexString(_messages[_selectedID][i][1]).ToList()[0]);
+                        //        massByte2.Add(Convert.FromHexString(_messages[_selectedID][i][2]).ToList()[0]);
+                        //        massByte3.Add(Convert.FromHexString(_messages[_selectedID][i][3]).ToList()[0]);
+                        //        massByte4.Add(Convert.FromHexString(_messages[_selectedID][i][4]).ToList()[0]);
+                        //        massByte5.Add(Convert.FromHexString(_messages[_selectedID][i][5]).ToList()[0]);
+                        //        massByte6.Add(Convert.FromHexString(_messages[_selectedID][i][6]).ToList()[0]);
+                        //        massByte7.Add(Convert.FromHexString(_messages[_selectedID][i][7]).ToList()[0]);
+
+                        //    }
+                        count = 0;
+                        for (int k = 0; k < _comboBoxValues.Count; k++)
                         {
-                            
-                            if (TabItemOneByte.IsSelected == true && _messages[_selectedID][i][0].Contains(_itemByteSelected) == true)
+                            if (_messages[_selectedID][i][keys[k]].Contains(_comboBoxValues[keys[k]]))
                             {
-                                
+                                count++;
+                            }
+                            if (count == _comboBoxValues.Count)
+                            {
                                 massByte0.Add(Convert.FromHexString(_messages[_selectedID][i][0]).ToList()[0]);
                                 massByte1.Add(Convert.FromHexString(_messages[_selectedID][i][1]).ToList()[0]);
                                 massByte2.Add(Convert.FromHexString(_messages[_selectedID][i][2]).ToList()[0]);
@@ -513,9 +631,9 @@ namespace InterraCAN
                                 massByte5.Add(Convert.FromHexString(_messages[_selectedID][i][5]).ToList()[0]);
                                 massByte6.Add(Convert.FromHexString(_messages[_selectedID][i][6]).ToList()[0]);
                                 massByte7.Add(Convert.FromHexString(_messages[_selectedID][i][7]).ToList()[0]);
-                                
                             }
                         }
+                    
                         massByte01LE.Add(Convert.ToInt32(_messages[_selectedID][i][0] + _messages[_selectedID][i][1], 16));
                         massByte23LE.Add(Convert.ToInt32(_messages[_selectedID][i][2] + _messages[_selectedID][i][3], 16));
                         massByte45LE.Add(Convert.ToInt32(_messages[_selectedID][i][4] + _messages[_selectedID][i][5], 16));
@@ -543,36 +661,54 @@ namespace InterraCAN
                     int maxLenght = timing.Find(t => t.Contains(lastitem)).Length;
                     for (int i = 0; i < timing.Count; i++)
                     {
-                        if (_itemByteSelected != null)
+                        if (_comboBoxValues.Count != 0)
                         {
                             if (i == -1)
                             {
                                 i = 0;
                             }
 
-                            //if (TabItemOneByte.IsSelected == true && _messages[_selectedID][i][0].Contains(_itemByteSelected) == true)
+                            //if (TabItemOneByte.IsSelected == true && _messages[_selectedID][i][0].Contains(_itemByte0Selected) == true)
                             //{
                             //int lastIndex 
-                            
-                                if (replaseData0[i].Contains(_itemByteSelected)== true)
+                            count = 0;
+                            for (int k = 0; k < _comboBoxValues.Count; k++)
+                            {
+                                if (replaseData0[i].Contains(_comboBoxValues[keys[k]]))
+                                {
+                                    count++;
+                                }
+                                if (count == _comboBoxValues.Count)
                                 {
                                     while (timing[i].Length < maxLenght)
                                     {
                                         timing[i] = "0" + timing[i];
                                     }
-                                listBoxData.Add(timing[i] + " " +Regex.Replace(distinctData[i], "\\w{3,}\\s+", ""));
+                                    listBoxData.Add(timing[i] + " " + Regex.Replace(distinctData[i], "\\w{3,}\\s+", ""));
                                 }
+                            }
+
+                            //if (replaseData0[i].Contains(_comboBoxValues[keys[0]]) == true)
+                            //    {
+                            //        while (timing[i].Length < maxLenght)
+                            //        {
+                            //            timing[i] = "0" + timing[i];
+                            //        }
+                            //    listBoxData.Add(timing[i] + " " +Regex.Replace(distinctData[i], "\\w{3,}\\s+", ""));
+                            //    }
 
                             //}
-                            else 
-                            //if(TabItemOneByte.IsSelected == true && _messages[_selectedID][i][0].Contains(_itemByteSelected) == false)
-                            {
-                                timing.RemoveAt(i);
-                                replaseData0.RemoveAt(i);
-                                distinctData.RemoveAt(i);
-                                i = i -1;
-                            }
-                            //else if (timing[i].Contains(_itemByteSelected) == false)
+
+                            //else 
+                            ////if(TabItemOneByte.IsSelected == true && _messages[_selectedID][i][0].Contains(_itemByte0Selected) == false)
+                            //{
+                            //    timing.RemoveAt(i);
+                            //    replaseData0.RemoveAt(i);
+                            //    distinctData.RemoveAt(i);
+                            //    i = i -1;
+                            //}
+
+                            //else if (timing[i].Contains(_itemByte0Selected) == false)
                             //{
                             //    timing.RemoveAt(i);
                             //    i = i - 1;
@@ -584,10 +720,10 @@ namespace InterraCAN
                         }
                     }
                 }
-                if (_itemByteSelected != null)
+                if (_itemByte0Selected != null)
                 {
-                    CB_FilterOneByte.Items.Clear();
-                    LabelOneByte.Content = _itemByteSelected;
+                    //CB_FilterOneByte.Items.Clear();
+                    LabelOneByte.Content = _itemByte0Selected;
                     
                 }
                 else
@@ -597,55 +733,95 @@ namespace InterraCAN
                 }
                 if (_idForCBox != _selectedID)
                 {
-                    CB_FilterOneByte.Items.Clear();
+                    //CB_FilterOneByte.Items.Clear();
                     LabelOneByte.Content = " ";
                     _listForCBox.Clear();
                 }
                 //_byteSelected = CB_FilterOneByte.SelectedIndex;
-                if (_listForCBox.Count == 0)
-                {
+                //if (_listForCBox.Count == 0)
+                //{
                     LabelOneByte.Content = CB_FilterOneByte.SelectedItem;
                     _files0.Clear();
+                    _files1.Clear();
+                    _files2.Clear();
+                    _files3.Clear();
+                    _files4.Clear();
+                    _files5.Clear();
+                    _files6.Clear();
+                    _files7.Clear();
                     List<int> converter = new List<int>();
+                    List<int> converter1 = new List<int>();
+                    List<int> converter2 = new List<int>();
+                    List<int> converter3 = new List<int>();
+                    List<int> converter4 = new List<int>();
+                    List<int> converter5 = new List<int>();
+                    List<int> converter6 = new List<int>();
+                    List<int> converter7 = new List<int>();
+
                     List<string> strings = new List<string>();
+
                     massOneByte = massOneByte.Distinct().ToList();
-                    for (int i = 0; i < massOneByte.Count; i++)
-                    {
-                        converter.Add(Convert.ToInt32(massOneByte[i], 16));
-                    }
-                    converter = converter.OrderBy(c => c).ToList();
-                    for (int i = 0; i < converter.Count; i++)
-                    {
-                        strings.Add(Convert.ToString(converter[i], 16));
-                        string x = strings[i].ToString();
-                        if (x.Length == 1)
-                        {
-                            x = ("0" + x);
-                        }
+                    massOneByte1 = massOneByte1.Distinct().ToList();
+                    massOneByte2 = massOneByte2.Distinct().ToList();
+                    massOneByte3 = massOneByte3.Distinct().ToList();
+                    massOneByte4 = massOneByte4.Distinct().ToList();
+                    massOneByte5 = massOneByte5.Distinct().ToList();
+                    massOneByte6 = massOneByte6.Distinct().ToList();
+                    massOneByte7 = massOneByte7.Distinct().ToList();
+                    _files0 = SortingCBox(massOneByte);
+                    _files1 = SortingCBox(massOneByte1);
+                    _files2 = SortingCBox(massOneByte2);
+                    _files3 = SortingCBox(massOneByte3);
+                    _files4 = SortingCBox(massOneByte4);
+                    _files5 = SortingCBox(massOneByte5);
+                    _files6 = SortingCBox(massOneByte6);
+                    _files7 = SortingCBox(massOneByte7);
 
-                        _files0.Add(x.ToUpper());
-                    }
-                    CB_FilterOneByte.Items.Clear();
-                    CB_FilterOneByte.Items.Add("без фильтра");
-                    _listForCBox.Add("без фильтра");
-                    for (int i = 0; i < _files0.Count; i++)
-                    {
-                        CB_FilterOneByte.Items.Add(_files0[i]);
-                        _listForCBox.Add(_files0[i]);
-                    }
-                    _idForCBox = _selectedID;
-                }
-                else
-                {
-                    CB_FilterOneByte.Items.Clear();
-                    for (int i = 0; i < _listForCBox.Count; i++)
-                    {
-                        CB_FilterOneByte.Items.Add(_listForCBox[i]);
-                    }
-                    _idForCBox = _selectedID;
-                }
+                //for (int i = 0; i < massOneByte.Count; i++)
+                //{
+                //    converter.Add(Convert.ToInt32(massOneByte[i], 16));
+                //}
+                //converter = converter.OrderBy(c => c).ToList();
+                //for (int i = 0; i < converter.Count; i++)
+                //{
+                //    strings.Add(Convert.ToString(converter[i], 16));
+                //    string x = strings[i].ToString();
+                //    if (x.Length == 1)
+                //    {
+                //        x = ("0" + x);
+                //    }
 
+                //    _files0.Add(x.ToUpper());
+                //}
+                //CB_FilterOneByte.Items.Clear();
+                //CB_FilterOneByte.Items.Add("без фильтра");
+                //_listForCBox.Add("без фильтра");
+                //for (int i = 0; i < _files0.Count; i++)
+                //{
+                //    CB_FilterOneByte.Items.Add(_files0[i]);
+                //    _listForCBox.Add(_files0[i]);
+                //}
+                _idForCBox = _selectedID;
+                //}
 
+                //else
+                //{
+                //    CB_FilterOneByte.Items.Clear();
+                //    for (int i = 0; i < _listForCBox.Count; i++)
+                //    {
+                //        CB_FilterOneByte.Items.Add(_listForCBox[i]);
+                //    }
+                //    _idForCBox = _selectedID;
+                //}
+                CB_FilterOneByte.ItemsSource = _files0;
+                CB_FilterByte1.ItemsSource = _files1;
+                CB_FilterByte2.ItemsSource = _files2;
+                CB_FilterByte3.ItemsSource = _files3;
+                CB_FilterByte4.ItemsSource = _files4;
+                CB_FilterByte5.ItemsSource = _files5;
+                CB_FilterByte6.ItemsSource = _files6;
+                CB_FilterByte7.ItemsSource = _files7;
+                //////////
 
                 //for (int i = 0; i < massByte0.Count; i++)
                 //{
@@ -723,7 +899,7 @@ namespace InterraCAN
                 this.ModelByte1 = new PlotModel { Title = "1" };
                 this.ModelByte1.Series.Add(lineSeriesByte1);
                 plotByte1.Visibility = Visibility.Visible;
-                
+
                 plotByte1.Model = ModelByte1;
                 ModelByte1.MouseDown += (s, e) =>
                 {
@@ -775,7 +951,7 @@ namespace InterraCAN
                 this.ModelByte2 = new PlotModel { Title = "2" };
                 this.ModelByte2.Series.Add(lineSeriesByte2);
                 plotByte2.Visibility = Visibility.Visible;
-                
+
                 plotByte2.Model = ModelByte2;
                 ModelByte2.MouseDown += (s, e) =>
                 {
@@ -827,7 +1003,7 @@ namespace InterraCAN
                 this.ModelByte3 = new PlotModel { Title = "3" };
                 this.ModelByte3.Series.Add(lineSeriesByte3);
                 plotByte3.Visibility = Visibility.Visible;
-                
+
                 plotByte3.Model = ModelByte3;
                 ModelByte3.MouseDown += (s, e) =>
                 {
@@ -879,7 +1055,7 @@ namespace InterraCAN
                 this.ModelByte4 = new PlotModel { Title = "4" };
                 this.ModelByte4.Series.Add(lineSeriesByte4);
                 plotByte4.Visibility = Visibility.Visible;
-                
+
                 plotByte4.Model = ModelByte4;
                 ModelByte4.MouseDown += (s, e) =>
                 {
@@ -931,7 +1107,7 @@ namespace InterraCAN
                 this.ModelByte5 = new PlotModel { Title = "5" };
                 this.ModelByte5.Series.Add(lineSeriesByte5);
                 plotByte5.Visibility = Visibility.Visible;
-                
+
                 plotByte5.Model = ModelByte5;
                 ModelByte5.MouseDown += (s, e) =>
                 {
@@ -983,7 +1159,7 @@ namespace InterraCAN
                 this.ModelByte6 = new PlotModel { Title = "6" };
                 this.ModelByte6.Series.Add(lineSeriesByte6);
                 plotByte6.Visibility = Visibility.Visible;
-                
+
                 plotByte6.Model = ModelByte6;
                 ModelByte6.MouseDown += (s, e) =>
                 {
@@ -1035,7 +1211,7 @@ namespace InterraCAN
                 this.ModelByte7 = new PlotModel { Title = "7" };
                 this.ModelByte7.Series.Add(lineSeriesByte7);
                 plotByte7.Visibility = Visibility.Visible;
-                
+
                 plotByte7.Model = ModelByte7;
                 ModelByte7.MouseDown += (s, e) =>
                 {
@@ -1087,7 +1263,7 @@ namespace InterraCAN
                 this.ModelByte01LE = new PlotModel { Title = "0+1" };
                 this.ModelByte01LE.Series.Add(lineSeriesByte01LE);
                 plotByte01LE.Visibility = Visibility.Visible;
-                
+
                 plotByte01LE.Model = ModelByte01LE;
                 ModelByte01LE.MouseDown += (s, e) =>
                 {
@@ -1139,7 +1315,7 @@ namespace InterraCAN
                 this.ModelByte23LE = new PlotModel { Title = "2+3" };
                 this.ModelByte23LE.Series.Add(lineSeriesByte23LE);
                 plotByte23LE.Visibility = Visibility.Visible;
-                
+
                 plotByte23LE.Model = ModelByte23LE;
                 ModelByte23LE.MouseDown += (s, e) =>
                 {
@@ -1191,7 +1367,7 @@ namespace InterraCAN
                 this.ModelByte45LE = new PlotModel { Title = "4+5" };
                 this.ModelByte45LE.Series.Add(lineSeriesByte45LE);
                 plotByte45LE.Visibility = Visibility.Visible;
-                
+
                 plotByte45LE.Model = ModelByte45LE;
                 ModelByte45LE.MouseDown += (s, e) =>
                 {
@@ -1243,7 +1419,7 @@ namespace InterraCAN
                 this.ModelByte67LE = new PlotModel { Title = "6+7" };
                 this.ModelByte67LE.Series.Add(lineSeriesByte67LE);
                 plotByte67LE.Visibility = Visibility.Visible;
-                
+
                 plotByte67LE.Model = ModelByte67LE;
                 ModelByte67LE.MouseDown += (s, e) =>
                 {
@@ -1295,7 +1471,7 @@ namespace InterraCAN
                 this.ModelByte10BE = new PlotModel { Title = "1+0" };
                 this.ModelByte10BE.Series.Add(lineSeriesByte10BE);
                 plotByte10BE.Visibility = Visibility.Visible;
-                
+
                 plotByte10BE.Model = ModelByte10BE;
                 ModelByte10BE.MouseDown += (s, e) =>
                 {
@@ -1347,7 +1523,7 @@ namespace InterraCAN
                 this.ModelByte32BE = new PlotModel { Title = "3+2" };
                 this.ModelByte32BE.Series.Add(lineSeriesByte32BE);
                 plotByte32BE.Visibility = Visibility.Visible;
-                
+
                 plotByte32BE.Model = ModelByte32BE;
                 ModelByte32BE.MouseDown += (s, e) =>
                 {
@@ -1399,7 +1575,7 @@ namespace InterraCAN
                 this.ModelByte54BE = new PlotModel { Title = "5+4" };
                 this.ModelByte54BE.Series.Add(lineSeriesByte54BE);
                 plotByte54BE.Visibility = Visibility.Visible;
-                
+
                 plotByte54BE.Model = ModelByte54BE;
                 ModelByte54BE.MouseDown += (s, e) =>
                 {
@@ -1451,7 +1627,7 @@ namespace InterraCAN
                 this.ModelByte76BE = new PlotModel { Title = "7+6" };
                 this.ModelByte76BE.Series.Add(lineSeriesByte76BE);
                 plotByte76BE.Visibility = Visibility.Visible;
-                
+
                 plotByte76BE.Model = ModelByte76BE;
                 ModelByte76BE.MouseDown += (s, e) =>
                 {
@@ -1479,6 +1655,8 @@ namespace InterraCAN
 
                     }
                 };
+
+                ////////
 
                 plotByte76BE.Model.TrackerChanged += (s, e) =>
                 {
@@ -1508,18 +1686,18 @@ namespace InterraCAN
             //    int index = item.IndexOf(" ");
             //    int x = Convert.ToInt32(item.Remove(index));
             //    try
-            //        {
+            //    {
 
-            //            Tab_Msg.IsSelected = true;
-            //            LB_Messages.SelectedIndex = Convert.ToInt32(x);
-            //            LB_Messages.ScrollIntoView(LB_Messages.Items[Convert.ToInt32(x)]);
-            //        }
-            //        catch (Exception)
-            //        {
+            //        Tab_Msg.IsSelected = true;
+            //        LB_Messages.SelectedIndex = Convert.ToInt32(x);
+            //        LB_Messages.ScrollIntoView(LB_Messages.Items[Convert.ToInt32(x)]);
+            //    }
+            //    catch (Exception)
+            //    {
 
-            //            throw;
-            //       }
-                
+            //        throw;
+            //    }
+
             //};
 
             //заполнение ListBox
@@ -1570,20 +1748,53 @@ namespace InterraCAN
             {
                 
                 //TabItemOneByte.Refresh();
+
+                //if (LabelOneByte.Content != null)
+                //{
+                //CB_FilterOneByte.SelectedItem = LabelOneByte.Content.ToString();
+                _comboBoxValues.Clear();
+                    if (CB_FilterOneByte.SelectedIndex > 0)
+                    {
+                        _comboBoxValues.Add(0, (string)CB_FilterOneByte.SelectedItem);
+                    }
+                    if (CB_FilterByte1.SelectedIndex > 0)
+                    {
+                        _comboBoxValues.Add(1, (string)CB_FilterByte1.SelectedItem);
+                    }
+                    if (CB_FilterByte2.SelectedIndex > 0)
+                    {
+                        _comboBoxValues.Add(2, (string)CB_FilterByte2.SelectedItem);
+                    }
+                    if (CB_FilterByte3.SelectedIndex > 0)
+                    {
+                        _comboBoxValues.Add(3, (string)CB_FilterByte3.SelectedItem);
+                    }
+                    if (CB_FilterByte4.SelectedIndex > 0)
+                    {
+                        _comboBoxValues.Add(4, (string)CB_FilterByte4.SelectedItem);
+                    }
+                    if (CB_FilterByte5.SelectedIndex > 0)
+                    {
+                        _comboBoxValues.Add(5, (string)CB_FilterByte5.SelectedItem);
+                    }
+                    if (CB_FilterByte6.SelectedIndex > 0)
+                    {
+                        _comboBoxValues.Add(6, (string)CB_FilterByte6.SelectedItem);
+                    }
+                    if (CB_FilterByte7.SelectedIndex > 0)
+                    {
+                        _comboBoxValues.Add(7, (string)CB_FilterByte7.SelectedItem);
+                    }
                 string msgId = (string)LB_Uniq.SelectedItem;
                 LB_Uniq.SelectedIndex = -1;
 
                 LB_Uniq.SelectedItem = msgId;
-                if (LabelOneByte.Content != null)
-                {
-                    CB_FilterOneByte.SelectedItem = LabelOneByte.Content.ToString();
-
-                    if (CB_FilterOneByte.SelectedItem !=null)
-                    {
-                        _itemByteSelected = CB_FilterOneByte.SelectedItem.ToString();
-                    }
-                }
-                LabelOneByte.Visibility = Visibility.Visible;
+                //if (CB_FilterOneByte.SelectedItem !=null)
+                //{
+                //    _itemByte0Selected = CB_FilterOneByte.SelectedItem.ToString();
+                //}
+                //}
+                //LabelOneByte.Visibility = Visibility.Visible;
 
             }
             if (Tab2xLE.IsSelected == true && LB_Uniq.SelectedItem != null)
@@ -1597,7 +1808,7 @@ namespace InterraCAN
                     CB_FilterOneByte.SelectedItem = LabelOneByte.Content.ToString();
                     if (CB_FilterOneByte.SelectedItem != null)
                     {
-                        _itemByteSelected = CB_FilterOneByte.SelectedItem.ToString();
+                        _itemByte0Selected = CB_FilterOneByte.SelectedItem.ToString();
                     }
                 }
                 LabelOneByte.Visibility = Visibility.Hidden;
@@ -1614,7 +1825,7 @@ namespace InterraCAN
                     CB_FilterOneByte.SelectedItem = LabelOneByte.Content.ToString();
                     if (CB_FilterOneByte.SelectedItem != null)
                     {
-                        _itemByteSelected = CB_FilterOneByte.SelectedItem.ToString();
+                        _itemByte0Selected = CB_FilterOneByte.SelectedItem.ToString();
                     }
                 }
                 LabelOneByte.Visibility = Visibility.Hidden;
@@ -1623,39 +1834,47 @@ namespace InterraCAN
 
         private void CB_FilterOneByte_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            CB_FilterOneByte.IsDropDownOpen = false;
-            //CB_FilterOneByte.
-            if (CB_FilterOneByte.SelectedItem != _itemByteSelected)
-            {
-                if (TabItemOneByte.IsSelected == true)
-                {
-                    plotByte0.Visibility = Visibility.Hidden;
-                    plotByte1.Visibility = Visibility.Hidden;
-                    plotByte2.Visibility = Visibility.Hidden;
-                    plotByte3.Visibility = Visibility.Hidden;
-                    plotByte4.Visibility = Visibility.Hidden;
-                    plotByte5.Visibility = Visibility.Hidden;
-                    plotByte6.Visibility = Visibility.Hidden;
-                    plotByte7.Visibility = Visibility.Hidden;
-                    if (CB_FilterOneByte.SelectedItem != null)
-                    {
-                        _itemByteSelected = (string)CB_FilterOneByte.SelectedItem;
+            //e.Handled = true;
+            //CB_FilterOneByte.IsDropDownOpen = false;
+            ////CB_FilterOneByte.
+            //if (CB_FilterOneByte.SelectedItem != _itemByte0Selected)
+            //{
+            //    if (TabItemOneByte.IsSelected == true)
+            //    {
+            //        plotByte0.Visibility = Visibility.Hidden;
+            //        plotByte1.Visibility = Visibility.Hidden;
+            //        plotByte2.Visibility = Visibility.Hidden;
+            //        plotByte3.Visibility = Visibility.Hidden;
+            //        plotByte4.Visibility = Visibility.Hidden;
+            //        plotByte5.Visibility = Visibility.Hidden;
+            //        plotByte6.Visibility = Visibility.Hidden;
+            //        plotByte7.Visibility = Visibility.Hidden;
+            //        if (CB_FilterOneByte.SelectedItem != null)
+            //        {
+            //            _itemByte0Selected = (string)CB_FilterOneByte.SelectedItem;
 
-                    }
-                    //TabItemOneByte.Refresh();
-                    string msgId = (string)LB_Uniq.SelectedItem;
-                    LB_Uniq.SelectedIndex = -1;
-                    plotByte0.Visibility = Visibility.Visible;
-                    plotByte1.Visibility = Visibility.Visible;
-                    plotByte2.Visibility = Visibility.Visible;
-                    plotByte3.Visibility = Visibility.Visible;
-                    plotByte4.Visibility = Visibility.Visible;
-                    plotByte5.Visibility = Visibility.Visible;
-                    plotByte6.Visibility = Visibility.Visible;
-                    plotByte7.Visibility = Visibility.Visible;
-                    LB_Uniq.SelectedItem = msgId;
-                }
-            }
+            //        }
+            //        //TabItemOneByte.Refresh();
+            //        string msgId = (string)LB_Uniq.SelectedItem;
+            //        LB_Uniq.SelectedIndex = -1;
+            //        plotByte0.Visibility = Visibility.Visible;
+            //        plotByte1.Visibility = Visibility.Visible;
+            //        plotByte2.Visibility = Visibility.Visible;
+            //        plotByte3.Visibility = Visibility.Visible;
+            //        plotByte4.Visibility = Visibility.Visible;
+            //        plotByte5.Visibility = Visibility.Visible;
+            //        plotByte6.Visibility = Visibility.Visible;
+            //        plotByte7.Visibility = Visibility.Visible;
+            //        LB_Uniq.SelectedItem = msgId;
+            //    }
+            //}
+            //else
+            //{
+                
+                
+            //    //CB_FilterOneByte.SelectionChanged -= CB_FilterOneByte_SelectionChanged;
+            //    //LB_Uniq.SelectionChanged -= Lb_Uniq_SelectionChanged;
+            //}
         }
 
         //private void LineByte0_MouseMove(object sender, MouseEventArgs e)
@@ -2049,75 +2268,37 @@ namespace InterraCAN
         {
             myPopup.IsOpen = false;
         }
-        
-        private void LineGraphByte0_MouseMove(object sender, MouseEventArgs e)
-        {
-            //var point = 
-            //var pt = LineGraphByte0.PointFromScreen(e.GetPosition(null));
-            //Point cursor = new Point();
-
-
-            //var pt = e.GetPosition((LineGraph)sender);
-            //var xx = pt.X;
-            
-            //var item = LineGraphByte0.InputHitTest(pt);
-            //var yy = pt.Y;
-
-
-            //var hotSpotData = LineByte0.PeFunction.GetHotSpot();
-            //var xx = pt.X;
-            //var x = hotSpotData.Data2;
-            ////int y = 0;
-
-            //if (x >= 0 || _timings.Count > 0)
-            //{
-            //    while (xx > _timings.Count - 1)
-            //    {
-            //        xx--;
-            //    }
-            //    try
-            //    {
-            //        Label_Timing.Content = "Время: " + _timings[Convert.ToInt32(xx)];
-            //    }
-            //    catch (Exception)
-            //    {
-
-            //        throw;
-            //    }
-
-            //}
-            //else
-            //{
-            //    Label_Timing.Content = string.Empty;
-            //}
-        }
-
-        private void LineGraphByte0_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            //var pt = e.GetPosition((Rectangle)sender);
-            //var xx = pt.X;
-        }
-
-        private void PLot0_MouseCLick(object sender, MouseButtonEventArgs e)
-        {
-
-        }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
         #endregion
+        public List<string> SortingCBox(List<string> strings)
+        {
+            List<int> converter = new List<int>();
+            for (int i = 0; i < strings.Count; i++)
+            {
+                if (strings[i] == "без фильтра")
+                {
+                    strings.RemoveAt(i);
+                }
+                converter.Add(Convert.ToInt32(strings[i], 16));
+            }
+            converter = converter.OrderBy(c => c).ToList();
+            strings.Clear();
+            strings.Add("без фильтра");
+            for (int i = 0; i < converter.Count; i++)
+            {
+                //strings.Add(Convert.ToString(converter[i], 16));
+                string x = Convert.ToString(converter[i], 16);
+                if (x.Length == 1)
+                {
+                    x = ("0" + x);
+                } 
+                //x = x.ToUpper();
+                strings.Add(x.ToUpper());
+            }
+            return strings;
+        }
         //public static RoutedCommand ShiftAndLeftClick = new RoutedCommand();
         CommandBinding ShiftAndLeftClick = new CommandBinding();
 
@@ -2160,6 +2341,19 @@ namespace InterraCAN
             }
         }
 
+
+
+        private void LB_Uniq_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+
+            //LB_Uniq.SelectionChanged += Lb_Uniq_SelectionChanged;
+        }
+
+        private void CB_FilterOneByte_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            //CB_FilterOneByte.SelectionChanged += CB_FilterOneByte_SelectionChanged;
+        }
+
         //private void CB_FilterOneByte_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         //{
         //    if (TabItemOneByte.IsSelected == true)
@@ -2174,7 +2368,7 @@ namespace InterraCAN
         //        plotByte7.Visibility = Visibility.Hidden;
         //        if (CB_FilterOneByte.SelectedItem != null)
         //        {
-        //            _itemByteSelected = (string)CB_FilterOneByte.SelectedItem;
+        //            _itemByte0Selected = (string)CB_FilterOneByte.SelectedItem;
 
         //        }
         //        //TabItemOneByte.Refresh();

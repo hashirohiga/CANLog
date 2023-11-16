@@ -150,15 +150,14 @@
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="0.05*"/>
-                                <RowDefinition Height="0.05*"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-                            <ComboBox
-                                    Name="CB_FilterOneByte"
-                                    SelectionChanged="CB_FilterOneByte_SelectionChanged"/>
+                            <!--<ComboBox
+                                    Name="CB_FilterOneByte1"
+                                    SelectionChanged="CB_FilterOneByte_SelectionChanged"/>-->
 
                             <Label
-                                Grid.Row="1"
+                                
                                 Name="LabelOneByte"/>
                             <ListBox
                                 
@@ -169,7 +168,8 @@
                                 ScrollViewer.VerticalScrollBarVisibility="Visible"
                                 ScrollViewer.CanContentScroll="True"
                                 ScrollBar.Scroll="LB_Uniq_Scroll"
-                                Mouse.PreviewMouseWheel="LB_Uniq_PreviewMouseWheel">
+                                Mouse.PreviewMouseWheel="LB_Uniq_PreviewMouseWheel"
+                                PreviewMouseLeftButtonDown="LB_Uniq_PreviewMouseLeftButtonDown">
                                 <ListBox.ContextMenu>
                                     <ContextMenu>
                                         <MenuItem Header="Пометить как интересный" Click="MenuItemGreen_Click"/>
@@ -185,6 +185,7 @@
                                     </ContextMenu>
                                 </ListBox.ContextMenu>
                             </ListBox>
+                            
                         </Grid>
 
                         <TabControl
@@ -195,6 +196,7 @@
                             <TabItem
                                 Header="график побайтно"
                                 Name="TabItemOneByte">
+
                                 <Grid>
                                     <Grid.Resources>
 
@@ -211,23 +213,19 @@
                                         <RowDefinition/>
                                     </Grid.RowDefinitions>
                                     <!--chart0-->
-
-                                    <StackPanel>
-                                        <ComboBox
-                                        HorizontalAlignment="Left"
-                                        VerticalAlignment="Top"
-                                        Height="20" Grid.IsSharedSizeScope="True"/>
-                                        <oxy:PlotView x:Name="plotByte0"
-                                                      Height="150">
-                                        </oxy:PlotView>
-                                    </StackPanel>
-                                        
-
-
-
-
+                                    <ComboBox
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Top"
+                                            Name="CB_FilterOneByte"
+                                            SelectionChanged="CB_FilterOneByte_SelectionChanged"
+                                            Height="20" Width="20"
+                                            Panel.ZIndex="1"/>
+                                    <oxy:PlotView x:Name="plotByte0">
+                                    </oxy:PlotView>
+                                    
                                     <!--chart2-->
                                     <ComboBox
+                                        Name="CB_FilterByte2"
                                         Grid.Column="1"
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Top"
@@ -235,12 +233,13 @@
                                         Width="20"
                                         Height="20"/>
                                     <oxy:PlotView 
-                                     Grid.Column="1"               
-                                     x:Name="plotByte2"/>
+                                        Grid.Column="1"
+                                        x:Name="plotByte2"/>
 
 
                                     <!--chart4-->
                                     <ComboBox
+                                        Name="CB_FilterByte4"
                                         Grid.Column="2"
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Top"
@@ -253,6 +252,7 @@
 
                                     <!--chart6-->
                                     <ComboBox
+                                        Name="CB_FilterByte6"
                                         Grid.Column="3"
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Top" IsDropDownOpen="False"
@@ -260,22 +260,24 @@
                                         Width="20"
                                         Height="20"/>
                                     <oxy:PlotView 
-                                     Grid.Column="3"               
-                                     x:Name="plotByte6"/>
+                                         Grid.Column="3"               
+                                         x:Name="plotByte6"/>
                                     <!--chart1-->
                                     <ComboBox
+                                        Name="CB_FilterByte1"
                                         Grid.Row="1"
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Top" IsDropDownOpen="False"
                                         Panel.ZIndex="1"
                                         Width="20"
                                         Height="20"/>
-                                    <oxy:PlotView 
-                                     Grid.Row="1"               
-                                     x:Name="plotByte1"/>
+                                    <oxy:PlotView      
+                                        Grid.Row="1"
+                                        x:Name="plotByte1"/>
 
                                     <!--chart3-->
                                     <ComboBox
+                                        Name="CB_FilterByte3"
                                         Grid.Column="1"
                                         Grid.Row="1"
                                         HorizontalAlignment="Left"
@@ -284,11 +286,12 @@
                                         Width="20"
                                         Height="20"/>
                                     <oxy:PlotView 
-                                     Grid.Column="1"
-                                     Grid.Row = "1"
-                                     x:Name="plotByte3"/>
+                                         Grid.Column="1"
+                                         Grid.Row = "1"
+                                         x:Name="plotByte3"/>
                                     <!--chart5-->
                                     <ComboBox
+                                        Name="CB_FilterByte5"
                                         Grid.Column="2"
                                         Grid.Row="1"
                                         HorizontalAlignment="Left"
@@ -297,11 +300,12 @@
                                         Width="20"
                                         Height="20"/>
                                     <oxy:PlotView 
-                                     Grid.Column="2"
-                                     Grid.Row = "1"
-                                     x:Name="plotByte5"/>
+                                        Grid.Column="2"
+                                        Grid.Row = "1"
+                                        x:Name="plotByte5"/>
                                     <!--chart7-->
                                     <ComboBox
+                                        Name="CB_FilterByte7"
                                         Grid.Column="3"
                                         Grid.Row="1"
                                         HorizontalAlignment="Left"
@@ -310,11 +314,10 @@
                                         Width="20"
                                         Height="20"/>
                                     <oxy:PlotView 
-                                     Grid.Column="3"
-                                     Grid.Row = "1"
-                                     x:Name="plotByte7"/>
+                                        Grid.Column="3"
+                                        Grid.Row = "1"
+                                        x:Name="plotByte7"/>
                                 </Grid>
-
                                 <!--</ScrollViewer>-->
                             </TabItem>
                             <TabItem Header="график 2x little endian"
