@@ -1,0 +1,263 @@
+Скорость шины: 250 кБод
+Тип заголовка: 29 бит
+Количество принятых сообщений: 4866
+Количество адресов, всего: 78
+Найдено PGN: 14
+Найдено параметров: 37
+
+
+Адрес 0x18FEF200
+PGN 0x00FEF2(65266)
+124 сообщ., интервал 444 мс
+
+Engine Fuel Rate,L/h
+SPN 183, байты 1-2
+0.05 L/h per bit, 0 offset
+0 to 3212.75 L/h
+
+Engine Instantaneous Fuel Economy,km/L
+SPN 184, байты 3-4
+1/512 km/L per bit, 0 offset
+0 to 125.5 km/L
+
+
+Адрес 0x18FEDF00
+PGN 0x00FEDF(65247)
+33 сообщ., интервал 1.7 с
+
+Nominal Friction - Percent Torque,%
+SPN 514, байт 1
+1 %/bit, -125 % offset
+-125 to 125 %
+
+Engine's Desired Operating Speed,rpm
+SPN 515, байты 2-3
+0.125 rpm/bit, 0 offset
+0 to 8031.875 rpm
+
+Engine's Desired Operating Speed Asymmetry Adjustment
+SPN 519, байт 4
+1/bit, 0 offset
+0 to 250
+
+Estimated Engine Parasitic Losses - Percent Torque,%
+SPN 2978, байт 5
+1 %/bit, -125 % offset
+-125 to 125 %
+
+
+Адрес 0x18F0000F
+PGN 0x00F000(61440)
+85 сообщ., интервал 632 мс
+
+Retarder Torque Mode
+SPN 900, байт 1, биты 1-4
+16 states/4 bit, 0 offset
+0 to 15
+
+Retarder Enable - Brake Assist Switch
+SPN 571, байт 1, биты 5-6
+4 states/2 bit, 0 offset
+0 to 3
+
+Retarder Enable - Shift Assist Switch
+SPN 572, байт 1, биты 7-8
+4 states/2 bit, 0 offset
+0 to 3
+
+Actual Retarder - Percent Torque,%
+SPN 520, байт 2
+1 %/bit, -125 % offset
+-125 to 125 %
+
+Intended Retarder Percent Torque,%
+SPN 1085, байт 3
+1 %/bit, -125 % offset
+-125 to 125 %
+
+Source Address of Controlling Device for Retarder Control
+SPN 1480, байт 5
+1 source address/bit, 0 offset
+0 to 255
+
+Actual Maximum Available Retarder - Percent Torque,%
+SPN 1717, байт 8
+1 %/bit, -125 % offset
+-125 to 125 %
+
+
+Адрес 0x0CF00300
+PGN 0x00F003(61443)
+91 сообщ., интервал 579 мс
+
+Engine Percent Load At Current Speed,%
+SPN 92, байт 3
+1 %/bit, 0 offset
+0 to 250 %
+
+
+Адрес 0x18FEF500
+PGN 0x00FEF5(65269)
+3 сообщ., интервал 25.5 с
+
+Barometric Pressure,kPa
+SPN 108, байт 1
+0.5 kPa/bit, 0 offset
+0 to 125 kPa
+
+
+Адрес 0x18FEF600
+PGN 0x00FEF6(65270)
+10 сообщ., интервал 5.7 с
+
+Engine Intake Manifold 1 Pressure,kPa
+SPN 102, байт 2
+2 kPa/bit, 0 offset
+0 to 500 kPa
+
+Engine Intake Manifold 1 Temperature,°C
+SPN 105, байт 3
+1 °C/bit, -40 °C offset
+-40 to 210 °C
+
+
+Адрес 0x0CF00400
+PGN 0x00F004(61444)
+351 сообщ., интервал 146 мс
+
+Engine Torque Mode
+SPN 899, байт 1, биты 1-4
+16 states/4 bit, 0 offset
+0 to 15
+
+Actuel Engine - Percent Torque High Resolution,%
+SPN 4154, байт 1, биты 5-8
+0.125%/bit, 0 offset
+0 to 0.875%
+
+Actual Engine - Percent Torque,%
+SPN 513, байт 3
+1 %/bit, -125 % offset
+-125 to 125 %
+
+Engine Speed,rpm
+SPN 190, байты 4-5
+0.125 rpm/bit, 0 offset
+0 to 8031.875 rpm
+
+Sourse Address of Controlling Device for Engine Control
+SPN 1483, байт 6
+1 source address/bit, 0 offset
+0 to 255
+
+Engine Demand – Percent Torque,%
+SPN 2432, байт 8
+1 %/bit, -125 % offset
+-125 to 125 %
+
+
+Адрес 0x18FEF700
+PGN 0x00FEF7(65271)
+5 сообщ., интервал 12.5 с
+
+Battery Potential/Power Input,V
+SPN 168, байты 5-6
+0.05 V/bit, 0 offset
+0 to 3212.75 V
+
+Keyswitch Battery Potential,V
+SPN 158, байты 7-8
+0.05 V/bit, 0 offset
+0 to 3212.75 V
+
+
+Адрес 0x18FEEE00
+PGN 0x00FEEE(65262)
+7 сообщ., интервал 7.3 с
+
+Engine Coolant Temperature,°C
+SPN 110, байт 1
+1 °C/bit, -40 °C offset
+-40 to 210 °C
+
+Engine Fuel Temperature 1,°C
+SPN 174, байт 2
+1 °C/bit, -40 °C offset
+-40 to 210 °C
+
+Engine Oil Temperature 1,°C
+SPN 175, байты 3-4
+0.03125 °C/bit, -273 °C offset
+-273 to 1734.96875 °C
+
+
+Адрес 0x18FEBD00
+PGN 0x00FEBD(65213)
+7 сообщ., интервал 5.7 с
+
+Estimated Percent Fan Speed,%
+SPN 975, байт 1
+0.4 %/bit, 0 offset
+0 to 100 %
+
+Fan Drive State
+SPN 977, байт 2, биты 1-4
+16 states/4 bit, 0 offset
+0 to 15
+
+
+Адрес 0x18FEE900
+PGN 0x00FEE9(65257)
+3 сообщ., интервал 15.1 с
+
+Engine Total Fuel Used,L
+SPN 250, байты 5-8
+0.5 L/bit, 0 offset
+0 to 2105540607.5 L
+
+
+Адрес 0x18FEE500
+PGN 0x00FEE5(65253)
+3 сообщ., интервал 15.1 с
+
+Engine Total Hours of Operation,hr
+SPN 247, байты 1-4
+0.05 hr/bit, 0 offset
+0 to 210554060.75 hr
+
+Engine Total Revolutions,kr
+SPN 249, байты 5-8
+1000 r/bit, 0 offset
+0 to 4211081215 kr
+
+
+Адрес 0x18FEE400
+PGN 0x00FEE4(65252)
+4 сообщ., интервал 7.3 с
+
+Engine Wait to Start Lamp
+SPN 1081, байт 4, биты 1-2
+4 states/2 bit, 0 offset
+0 to 3
+
+Engine Protection System has Shutdown Engine
+SPN 1110, байт 5, биты 1-2
+4 states/2 bit, 0 offset
+0 to 3
+
+
+Адрес 0x18FEE517
+PGN 0x00FEE5(65253)
+1 сообщ.
+
+Engine Total Hours of Operation,hr
+SPN 247, байты 1-4
+0.05 hr/bit, 0 offset
+0 to 210554060.75 hr
+
+Engine Total Revolutions,kr
+SPN 249, байты 5-8
+1000 r/bit, 0 offset
+0 to 4211081215 kr
+
+

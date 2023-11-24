@@ -96,6 +96,7 @@
                             Height="25"
                             Margin="5"
                             Content="PRM"
+                            Visibility="Hidden"
                             
                             Click="Btn_PRM_CLick"/>
                         <StackPanel
@@ -126,6 +127,10 @@
                         Grid.Row="1"
                         Minimum="0" Maximum="115"
                         />
+                    <Label
+                        Grid.Column="1"
+                        Grid.Row="1"
+                        Name="Label_ProgressBar_Status"/>
                 </Grid>
             </TabItem>
             <TabItem
@@ -144,7 +149,7 @@
                     <!--Charts-->
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="110"/>
                             <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
                         <Grid>
@@ -388,13 +393,24 @@
                             </TabItem>
                             <TabItem Header="Сообщения"
                                      Name="Tab_Msg">
-                                <ListBox
-                                    Width="300"
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition/>
+                                    </Grid.ColumnDefinitions>
+                                    <ListBox
+                                    
                                     Name="LB_Messages"
                                     HorizontalAlignment="Left"
                                     ScrollViewer.VerticalScrollBarVisibility="Visible"/>
+                                    <TextBox
+                                        Name="TB_PRM_Commits"
+                                        Grid.Column="2"/>
+                                </Grid>
                             </TabItem>
-                            <TabItem Header="График произвольный"/>
+                            <TabItem Header="График произвольный"
+                                     Visibility="Hidden"/>
                         </TabControl>
                     </Grid>
                     <!--footer-->

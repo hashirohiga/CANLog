@@ -40,6 +40,7 @@ using OxyPlot.Series;
 using System.Globalization;
 using System.Reflection;
 using InerraCAN;
+using System.Collections;
 
 namespace InterraCAN
 {
@@ -136,6 +137,7 @@ namespace InterraCAN
                     
                     TB_List.Visibility = Visibility.Hidden;
                     PB_Load.Value = 0;
+                    Label_ProgressBar_Status.Content = "Обработка файла... (1 из 2)";
                     TB_List.Clear();
                     string filename = _currentFile.FileName;
                     string files = System.IO.File.ReadAllText(filename);
@@ -233,10 +235,6 @@ namespace InterraCAN
                     List<string> uniqId = new List<string>();
                     for (int i = 0; i < distinctData.Count; i++)
                     {
-                        if (Regex.Replace(distinctData[i], @" \S*", "") == "54")
-                        {
-
-                        }
                         uniqId.Add(Regex.Replace(distinctData[i], @" \S*", ""));
                     }
                     uniqId = uniqId.Distinct().ToList();
@@ -333,6 +331,7 @@ namespace InterraCAN
                     List<string> listMsg = new List<string>();
                 int counter = 0;
                 PB_Load.Value = 0;
+                Label_ProgressBar_Status.Content = "Заполнение списков... (2 из 2)";
                 PB_Load.Maximum = uniqId.Count;
                 PB_Load.Value = PB_Load.Value + 1;
                 DoEvents();
@@ -371,7 +370,7 @@ namespace InterraCAN
                     PB_Load.Value = PB_Load.Value + 15;
                     DoEvents();
                     Thread.Sleep(100);
-
+                    Label_ProgressBar_Status.Content = "Обработка выполнена.";
                     _messages = messages;
                     _uniqId = uniqId;
                     uniqId = null;
@@ -383,6 +382,7 @@ namespace InterraCAN
                     //для точки остановки
                     List<string> uniqId1 = new List<string>();
                     List<string> uniqId2 = new List<string>();
+                    Btn_PRM_CLick(sender, e);
                 }
 
             else MessageBox.Show("Файл не был выбран.");
@@ -1711,6 +1711,20 @@ namespace InterraCAN
                 LB_Messages.ItemsSource = string.Empty;
 
                 LB_Messages.ItemsSource = listBoxData;
+                TB_PRM_Commits.Clear();
+                for (int i = 0; i < PRM_Commits_List.Count; i++)
+                {
+                    if (PRM_Commits_List[i].Contains(_selectedID))
+                    {
+                        TB_PRM_Commits.Text = PRM_Commits_List[i];
+                        
+                    }
+                    //else
+                    //{
+                    //    TB_PRM_Commits.Clear();
+                    //}
+                }
+                    //_commits.Add(_uniqId.FindIndex(u => u.Contains(IdAdress)), words[i]);
                 _timings.Clear();
                 _timings = timing;
                 if (_markedUniqId.Items.Count == 0)
@@ -2301,22 +2315,29 @@ namespace InterraCAN
         }
         //public static RoutedCommand ShiftAndLeftClick = new RoutedCommand();
         CommandBinding ShiftAndLeftClick = new CommandBinding();
+        List<string> PRM_Commits_List = new List<string>();
+        Dictionary<string ,List<string>> _dictForCommitsPMR = new Dictionary<string, List<string>>();
 
         private void Btn_PRM_CLick(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog ofd = new OpenFileDialog();
-            if (ofd.FileName == "")
-            {
-                
-                ofd.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
-                ofd.ShowDialog();
-                string filename = ofd.FileName;
-                string files = System.IO.File.ReadAllText(filename, Encoding.GetEncoding(1251));
-                //\r\n\r\n\r\n
-                List<string> words = files.Split("\r\n\r\n\r\n").ToList();
+            _dictForCommitsPMR.Clear();
+            //OpenFileDialog ofd = new OpenFileDialog();
+            //if (ofd.FileName == "")
+            //{
+
+            //    ofd.Filter = "Text files (*.txt)|prm*.txt|All files (*.*)|*.*";
+            //    ofd.ShowDialog();
+            //    string filename = ofd.FileName;
+            //string files = System.IO.File.ReadAllText(filename, Encoding.UTF8);
+            //string files = System.IO.File.ReadAllText($"..\\files\\prm_xxxxxxxx1.txt");
+            string files = System.IO.File.ReadAllText("C:\\Users\\technic\\Downloads\\prm_xxxxxxxx1.txt");
+            //\r\n\r\n\r\n
+            List<string> words = files.Split("\r\n\r\n\r\n").ToList();
                 words.RemoveAt(0);
                 for (int i = 0; i < words.Count; i++)
                 {
+                    //words[i] = Encoding.Default.GetString(words[i]);
+                    ////words[i] = 
                     if (words[i] == "")
                     {
                         words.RemoveAt(i);
@@ -2332,13 +2353,220 @@ namespace InterraCAN
                         string IdAdress = words[i].Substring(firstIndex, lastIndex - firstIndex);
                         if (_uniqId.Find(u => u.Contains(IdAdress)) != null)
                         {
-                            _commits.Add(_uniqId.FindIndex(u => u.Contains(IdAdress)), words[i]);
+                            List<string> PRM_bytes = new List<string>();
+                            PRM_bytes = words[i].Split("\r\n\r\n").ToList();
+                            PRM_bytes.RemoveAt(0);
+                            
+                            //PRM_Commits_List.Add(words[i]);
+                            _dictForCommitsPMR.Add(IdAdress, PRM_bytes);
+                            //_commits.Add(_uniqId.FindIndex(u => u.Contains(IdAdress)), words[i]);
+                            for (int j = 0; j < _dictForCommitsPMR[IdAdress].Count; j++)
+                            {
+                                string message = _dictForCommitsPMR[IdAdress][j].Remove(0, _dictForCommitsPMR[IdAdress][j].IndexOf("\r\n"));
+                                //firstIndex = _dictForCommitsPMR[IdAdress][j].IndexOf(",")+1;
+                                //lastIndex = _dictForCommitsPMR[IdAdress][j].IndexOf("\r\n", firstIndex);
+                                firstIndex = message.IndexOf(",") + 1;
+                                lastIndex = message.IndexOf("\r\n", firstIndex);
+                                string stroke = message.Substring(firstIndex, lastIndex - firstIndex);
+                                string stringByte;
+                                string stringBit = null;
+                                if (stroke.IndexOf(",") != -1)
+                                {   
+                                    //indexer subIndex1 = 
+                                    stringByte = stroke.Remove(stroke.IndexOf(","));
+                                    stringByte = string.Concat(stringByte.Where(Char.IsDigit));
+                                    stringBit = stroke.Remove(0, stroke.IndexOf(","));
+                                    stringBit = string.Concat(stringBit.Where(Char.IsDigit));
+                                }
+                                else
+                                {
+                                     stringByte = string.Concat(stroke.Where(Char.IsDigit));
+                                }
+                                int y = 0;
+                                //ПЕРЕПИСАТЬ ЛОГИКУ
+                                //�
+                                //ЧТОБЫ БАЙТЕ ПРОВЕРЯЛИСЬ ВМЕСТЕ
+                                if (stringBit == null)
+                                {
+                                    if (stringByte.Length > 1)
+                                    {
+
+                                        _dictForCommitsPMR[IdAdress][j] = _dictForCommitsPMR[IdAdress][j].Replace("�����","байты");
+                                        int byte1 = Convert.ToInt32(stringByte.Substring(0, 1))-1;
+                                        int byte2 = Convert.ToInt32(stringByte.Substring(1, 1))-1;
+                                        
+                                        List<string> massByte = new List<string>();
+                                        for (int c = 0; c < _messages[IdAdress].Count; c++)
+                                        {
+                                            string strokeBytes = string.Empty;
+                                            for (int l = 0; l < byte2 - byte1 + 1; l++)
+                                            {
+                                                strokeBytes = strokeBytes + _messages[IdAdress][c][l];
+                                            }
+                                            //massByte.Add(_messages[IdAdress][c][byte1]+ _messages[IdAdress][c][byte2]);
+                                            massByte.Add(strokeBytes);
+                                        }
+                                        List<string> distinct = massByte.Distinct().ToList();
+                                        if (distinct.Count <= 1)
+                                        {
+                                            _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                            j--;
+
+                                        }
+
+                                        
+                                        //int count = 0;
+                                        //int lenght = stringByte.Length;
+                                        //for (int x = 0; x < stringByte.Length; x++)
+                                        //{
+                                        //    int oneByte = Convert.ToInt32(stringByte.Substring(0, 1));
+                                        //    //int distinct = Convert.ToInt32(_messages[IdAdress][oneByte].Distinct());
+                                        //    List<string> massByte = new List<string>();
+                                        //    for (int c = 0; c < _messages[IdAdress].Count; c++)
+                                        //    {
+                                        //        massByte.Add(_messages[IdAdress][c][oneByte - 1]);
+                                        //    }
+                                        //    List<string> distinct = massByte.Distinct().ToList();
+                                        //    if (distinct.Count > 1)
+                                        //    {
+                                        //        stringByte.Remove(0, 1);
+                                        //        count++;
+                                        //    }
+                                        //    else
+                                        //    {
+                                        //        if (lenght == x && count != lenght)
+                                        //        {
+                                        //                _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                        //                j--;
+
+                                        //                break;
+
+                                        //        }
+
+                                        //    }
+                                        //}
+                                    }
+                                    else
+                                    {
+                                        _dictForCommitsPMR[IdAdress][j] = _dictForCommitsPMR[IdAdress][j].Replace("����", "байт");
+                                        int oneByte = Convert.ToInt32(stringByte);
+                                        List<string> massByte = new List<string>();
+                                        for (int c = 0; c < _messages[IdAdress].Count; c++)
+                                        {
+                                            massByte.Add(_messages[IdAdress][c][oneByte - 1]);
+                                        }
+                                        List<string> distinct = massByte.Distinct().ToList();
+                                        if (distinct.Count > 1)
+                                        {
+                                            stringByte.Remove(0, 1);
+                                        }
+                                        else
+                                        {
+                                            _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                            j--;
+
+                                        }
+                                    }
+                                }
+                                else
+                                { 
+                                    if (stringBit.Length > 1)
+                                    {
+                                    int indexstroke = _dictForCommitsPMR[IdAdress][j].IndexOf(", ") + 6;
+                                    string halfstroke1 = _dictForCommitsPMR[IdAdress][j].Substring(0, indexstroke);
+                                    halfstroke1 = halfstroke1.Replace("����", "байт");
+                                    string halfstroke2 = _dictForCommitsPMR[IdAdress][j].Remove(0, indexstroke);
+                                    halfstroke2 = halfstroke2.Replace("����", "биты");
+                                    _dictForCommitsPMR[IdAdress][j] = halfstroke1 + halfstroke2;
+                                    int minBit = Convert.ToInt32(stringBit.Remove(1)) - 1;
+                                        int maxBit = Convert.ToInt32(stringBit.Remove(0,1)) - 1;
+                                        int oneByte = Convert.ToInt32(stringByte) - 1;
+
+                                            List<string> listBits = new List<string>();
+                                            //BitArray bits = new BitArray(_messages[IdAdress][0][oneByte]);
+                                            for (int c = 0; c < _messages[IdAdress].Count; c++)
+                                            {
+                                                var bits = Convert.ToInt32(_messages[IdAdress][c][oneByte], 16);
+                                                string stringBits = Convert.ToString(bits, 2);
+                                                while (stringBits.Length != 8)
+                                                {
+                                                    stringBits = "0" + stringBits;
+                                                }
+                                                //переворачиваем строку для правильной проверки битов
+                                            StringBuilder sb = new StringBuilder();
+                                            for (int h = stringBits.Length - 1; h >= 0; h--)
+                                            {
+                                                sb.Append(stringBits[h]);
+                                            }
+                                            string reverseBits = sb.ToString();
+                                            listBits.Add(reverseBits.Substring(minBit,(maxBit- minBit)+1));
+                                            }
+                                            List<string> distinct = listBits.Distinct().ToList();
+                                            if (distinct.Count >= 1)
+                                            {
+                                                _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                                j--;
+
+
+                                            }
+
+                                            //�
+                                        
+                                    }
+                                }
+                                //string.Concat(oneWord.Where(Char.IsDigit));
+
+                                
+                            }
+                            string commitPRM = IdAdress + "\r\n";
+                            for (int j = 0; j < _dictForCommitsPMR[IdAdress].Count; j++)
+                            {
+                                commitPRM = commitPRM + _dictForCommitsPMR[IdAdress][j];
+                            }
+                            if (_dictForCommitsPMR[IdAdress].Count > 0)
+                            {
+                                PRM_Commits_List.Add(commitPRM);
+                            }
+
                         }
-                        int y = 0;
+                        
                     }
                 }
 
-            }
+                //TB_PRM_Commits.Text = TB_PRM_Commits.Text + words[i];
+                //if (_dictForCommitsPMR.Count != 0)
+                //{
+                //    for (int i = 0; i < _dictForCommitsPMR.Count; i++)
+                //    {
+                //        for (int j = 0; j < _dictForCommitsPMR[].Count; j++)
+                //        {
+                //            //int firstIndex = _dictForCommitsPMR
+                //        }
+                //    }
+                //}
+                Tab_Charts.IsSelected = true;
+                Tab_Msg.IsSelected = true;
+            //string fileName = _currentFile.SafeFileName + "_J1939.txt";
+                string path = "C:\\Users\\technic\\Downloads\\" + _currentFile.SafeFileName + "_J1939.txt";
+                if (File.Exists(path) == true)
+                {
+                    File.Delete(path);
+                }
+                StreamWriter sw = new StreamWriter(path);
+                for (int i = 0; i < _dictForCommitsPMR.Keys.Count; i++)
+                {
+                    //var key = _dictForCommitsPMR.Take(i).Select(d => d.Key).First();
+                    var key = _dictForCommitsPMR.ElementAt(i).Key;
+
+                    //string IdAdress = _dictForCommitsPMR.Keys[i];
+                    for (int j = 0; j < _dictForCommitsPMR[key].Count; j++)
+                    {
+                        sw.WriteLine(key + " " + _dictForCommitsPMR[key][j].Replace("\r\n", " "));
+                    }
+                    sw.WriteLine();
+                }
+                sw.Close();
+            //}
         }
 
 
