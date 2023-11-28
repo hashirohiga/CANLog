@@ -118,6 +118,15 @@ namespace InterraCAN
         {
 
             OpenFileDialog ofd = new OpenFileDialog();
+            if (_countACE != true)
+            {
+                _currentFile.FileName = "";
+                _files = null;
+            }
+            else
+            {
+                _countACE = false;
+            }
             if (_currentFile.FileName == "")
             {
 
@@ -2245,7 +2254,7 @@ namespace InterraCAN
             //MenuItemAddCommit.Visibility = Visibility.Collapsed;
             //MenuItemEditCommit.Visibility = Visibility.Visible;
         }
-
+        bool _countACE;
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             if (_currentFile != null)
@@ -2254,7 +2263,9 @@ namespace InterraCAN
                 ofd.Filter = "Text files (*.log)|*.log|All files (*.*)|*.*";
                 ofd.ShowDialog();
                 _currentFile = ofd;
+                _countACE = true;
                 Btn_ACE( sender, e);
+                
             }
         }
 
@@ -2321,6 +2332,8 @@ namespace InterraCAN
         private void Btn_PRM_CLick(object sender, RoutedEventArgs e)
         {
             _dictForCommitsPMR.Clear();
+            var readCFG = System.IO.File.ReadAllText("PRM.cfg");
+
             //OpenFileDialog ofd = new OpenFileDialog();
             //if (ofd.FileName == "")
             //{
@@ -2329,10 +2342,12 @@ namespace InterraCAN
             //    ofd.ShowDialog();
             //    string filename = ofd.FileName;
             //string files = System.IO.File.ReadAllText(filename, Encoding.UTF8);
-            //string files = System.IO.File.ReadAllText($"..\\files\\prm_xxxxxxxx1.txt");
-            string files = System.IO.File.ReadAllText("C:\\Users\\technic\\Downloads\\prm_xxxxxxxx1.txt");
+            //string files = System.IO.File.ReadAllText($"..\\prm_xxxxxxxx1.txt");
+
+            string files = System.IO.File.ReadAllText(readCFG+".txt");
+            //string files = System.IO.File.ReadAllText("C:\\Users\\technic\\Downloads\\prm_xxxxxxxx1.txt");
             //\r\n\r\n\r\n
-            List<string> words = files.Split("\r\n\r\n\r\n").ToList();
+            List<string> words = files.Split("Адрес").ToList();
                 words.RemoveAt(0);
                 for (int i = 0; i < words.Count; i++)
                 {
@@ -2362,6 +2377,12 @@ namespace InterraCAN
                             //_commits.Add(_uniqId.FindIndex(u => u.Contains(IdAdress)), words[i]);
                             for (int j = 0; j < _dictForCommitsPMR[IdAdress].Count; j++)
                             {
+                                if (_dictForCommitsPMR[IdAdress][j] == "\r\n" || _dictForCommitsPMR[IdAdress][j] == "")
+                                {
+                                    _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                    j--;
+                                    break;
+                                }
                                 string message = _dictForCommitsPMR[IdAdress][j].Remove(0, _dictForCommitsPMR[IdAdress][j].IndexOf("\r\n"));
                                 //firstIndex = _dictForCommitsPMR[IdAdress][j].IndexOf(",")+1;
                                 //lastIndex = _dictForCommitsPMR[IdAdress][j].IndexOf("\r\n", firstIndex);
@@ -2394,14 +2415,19 @@ namespace InterraCAN
                                         _dictForCommitsPMR[IdAdress][j] = _dictForCommitsPMR[IdAdress][j].Replace("�����","байты");
                                         int byte1 = Convert.ToInt32(stringByte.Substring(0, 1))-1;
                                         int byte2 = Convert.ToInt32(stringByte.Substring(1, 1))-1;
-                                        
-                                        List<string> massByte = new List<string>();
+                                        var listForDict = _dictForCommitsPMR[IdAdress][j].Split("\r\n");
+                                        listForDict[1] = listForDict[1].Remove(0, listForDict[1].IndexOf(",") + 1);
+                                        _dictForCommitsPMR[IdAdress][j] = listForDict[1] + ";" + listForDict[0] + ";" + listForDict[2] + ";" + listForDict[3] + ";";
+
+                                    List<string> massByte = new List<string>();
                                         for (int c = 0; c < _messages[IdAdress].Count; c++)
                                         {
                                             string strokeBytes = string.Empty;
+                                            int count = byte1; 
                                             for (int l = 0; l < byte2 - byte1 + 1; l++)
                                             {
-                                                strokeBytes = strokeBytes + _messages[IdAdress][c][l];
+                                                strokeBytes = strokeBytes + _messages[IdAdress][c][count];
+                                                count++;
                                             }
                                             //massByte.Add(_messages[IdAdress][c][byte1]+ _messages[IdAdress][c][byte2]);
                                             massByte.Add(strokeBytes);
@@ -2409,9 +2435,19 @@ namespace InterraCAN
                                         List<string> distinct = massByte.Distinct().ToList();
                                         if (distinct.Count <= 1)
                                         {
-                                            _dictForCommitsPMR[IdAdress].RemoveAt(j);
-                                            j--;
-
+                                            if (CheckBox_Filter_PRM.IsChecked == true)
+                                            {
+                                                if (distinct[0] == "0000")
+                                                {
+                                                    _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                                    j--;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                                j--;
+                                            }
                                         }
 
                                         
@@ -2449,6 +2485,9 @@ namespace InterraCAN
                                     else
                                     {
                                         _dictForCommitsPMR[IdAdress][j] = _dictForCommitsPMR[IdAdress][j].Replace("����", "байт");
+                                        var listForDict = _dictForCommitsPMR[IdAdress][j].Split("\r\n");
+                                        listForDict[1] = listForDict[1].Remove(0, listForDict[1].IndexOf(",") + 1);
+                                        _dictForCommitsPMR[IdAdress][j] = listForDict[1] + ";" + listForDict[0] + ";" + listForDict[2] + ";" + listForDict[3] + ";";
                                         int oneByte = Convert.ToInt32(stringByte);
                                         List<string> massByte = new List<string>();
                                         for (int c = 0; c < _messages[IdAdress].Count; c++)
@@ -2462,8 +2501,20 @@ namespace InterraCAN
                                         }
                                         else
                                         {
-                                            _dictForCommitsPMR[IdAdress].RemoveAt(j);
-                                            j--;
+                                            if (CheckBox_Filter_PRM.IsChecked == true)
+                                            {
+                                                if (distinct[0] == "00")
+                                                {
+                                                    _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                                    j--;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                                j--;
+                                            }
+
 
                                         }
                                     }
@@ -2478,6 +2529,9 @@ namespace InterraCAN
                                     string halfstroke2 = _dictForCommitsPMR[IdAdress][j].Remove(0, indexstroke);
                                     halfstroke2 = halfstroke2.Replace("����", "биты");
                                     _dictForCommitsPMR[IdAdress][j] = halfstroke1 + halfstroke2;
+                                    var listForDict = _dictForCommitsPMR[IdAdress][j].Split("\r\n");
+                                    listForDict[1] = listForDict[1].Remove(0, listForDict[1].IndexOf(",")+1);
+                                    _dictForCommitsPMR[IdAdress][j] = listForDict[1] + ";" + listForDict[0] + ";" + listForDict[2] + ";" + listForDict[3] + ";";
                                     int minBit = Convert.ToInt32(stringBit.Remove(1)) - 1;
                                         int maxBit = Convert.ToInt32(stringBit.Remove(0,1)) - 1;
                                         int oneByte = Convert.ToInt32(stringByte) - 1;
@@ -2502,10 +2556,27 @@ namespace InterraCAN
                                             listBits.Add(reverseBits.Substring(minBit,(maxBit- minBit)+1));
                                             }
                                             List<string> distinct = listBits.Distinct().ToList();
-                                            if (distinct.Count >= 1)
+                                            if (distinct.Count <= 1)
                                             {
-                                                _dictForCommitsPMR[IdAdress].RemoveAt(j);
-                                                j--;
+                                                if (CheckBox_Filter_PRM.IsChecked == true)
+                                                {
+                                                    string zeroBits = null;
+                                                    for (int d = 0; d < (maxBit - minBit) + 1; d++)
+                                                    {
+                                                        zeroBits = zeroBits + "0";
+                                                    }
+                                                    if (distinct[0] == zeroBits)
+                                                    {
+                                                        _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                                        j--;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                                    j--;
+                                                }
+
 
 
                                             }
@@ -2518,10 +2589,11 @@ namespace InterraCAN
 
                                 
                             }
-                            string commitPRM = IdAdress + "\r\n";
+                            string commitPRM = string.Empty;
+                            //= IdAdress + "\r\n";
                             for (int j = 0; j < _dictForCommitsPMR[IdAdress].Count; j++)
                             {
-                                commitPRM = commitPRM + _dictForCommitsPMR[IdAdress][j];
+                                commitPRM = commitPRM + IdAdress +_dictForCommitsPMR[IdAdress][j] +"\r\n" + "\r\n";
                             }
                             if (_dictForCommitsPMR[IdAdress].Count > 0)
                             {
@@ -2546,8 +2618,10 @@ namespace InterraCAN
                 //}
                 Tab_Charts.IsSelected = true;
                 Tab_Msg.IsSelected = true;
-            //string fileName = _currentFile.SafeFileName + "_J1939.txt";
-                string path = "C:\\Users\\technic\\Downloads\\" + _currentFile.SafeFileName + "_J1939.txt";
+                //string fileName = _currentFile.SafeFileName + "_J1939.txt";
+                //$"..\\prm_xxxxxxxx1.txt"
+                //string path = "C:\\Users\\technic\\Downloads\\" + _currentFile.SafeFileName + "_J1939.txt";
+                string path =_currentFile.FileName + "_J1939.txt";
                 if (File.Exists(path) == true)
                 {
                     File.Delete(path);
@@ -2557,19 +2631,49 @@ namespace InterraCAN
                 {
                     //var key = _dictForCommitsPMR.Take(i).Select(d => d.Key).First();
                     var key = _dictForCommitsPMR.ElementAt(i).Key;
-
-                    //string IdAdress = _dictForCommitsPMR.Keys[i];
+                if (_dictForCommitsPMR[key].Count != 0 )
+                {
                     for (int j = 0; j < _dictForCommitsPMR[key].Count; j++)
                     {
-                        sw.WriteLine(key + " " + _dictForCommitsPMR[key][j].Replace("\r\n", " "));
+                        sw.WriteLine(key + " " + _dictForCommitsPMR[key][j]);
+
+                        int firstIndex = _dictForCommitsPMR[key][j].IndexOf(";");
+                        string chars = _dictForCommitsPMR[key][j].Remove(firstIndex);
+                        chars = string.Concat(chars.Where(Char.IsDigit));
+                        int CANbit;
+                        if (chars.Length >= 3)
+                        {
+                            chars = chars.Substring(0, chars.Length-2);
+                        }
+                        if (chars.Length == 2)
+                        {
+                            int minByte = Convert.ToInt32(chars.Substring(0, 1));
+                            int maxByte = Convert.ToInt32(chars.Substring(1, 1));
+                            CANbit = (maxByte - minByte + 1) * 8;
+                            sw.WriteLine("CAN" + Convert.ToString(CANbit)+"BITR"+ Convert.ToString(j) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 2), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                        }
+                        else if (chars.Length == 1)
+                        {
+                            CANbit = Convert.ToInt32(chars) * 8;
+                            sw.WriteLine("CAN" + Convert.ToString(CANbit) + "BITR" + Convert.ToString(j) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 2), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                        }
+                        sw.WriteLine();
+                        //lastIndex = message.IndexOf("\r\n", firstIndex);
+
+                        //string stroke = message.Substring(firstIndex, lastIndex - firstIndex);
+
+                        //sw.WriteLine("CAN" + );
+                        //string number = ((string)_dictForCommitsPMR[key][j].SkipWhile(c => !char.IsDigit(c)).TakeWhile(c => char.IsDigit(c)));
+                        //sw.WriteLine("C/*AN")*/
                     }
                     sw.WriteLine();
+                    sw.WriteLine();
+                }
+                    //string IdAdress = _dictForCommitsPMR.Keys[i];
                 }
                 sw.Close();
             //}
         }
-
-
 
         private void LB_Uniq_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {

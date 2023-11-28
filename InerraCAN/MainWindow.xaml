@@ -63,6 +63,11 @@
                             Content="Удалить не меняющиеся теги"
                             HorizontalAlignment="Stretch"
                             x:Name="CheckBox_Filter"/>
+                        <CheckBox
+                            Margin="5"
+                            Content="Оставлять ненуленвые значения"
+                            HorizontalAlignment="Stretch"
+                            x:Name="CheckBox_Filter_PRM"/>
                         <Button
                             Width="120"
                             Height="25"
@@ -405,6 +410,7 @@
                                     HorizontalAlignment="Left"
                                     ScrollViewer.VerticalScrollBarVisibility="Visible"/>
                                     <TextBox
+                                        TextWrapping="WrapWithOverflow"
                                         Name="TB_PRM_Commits"
                                         Grid.Column="2"/>
                                 </Grid>
