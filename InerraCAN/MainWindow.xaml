@@ -65,9 +65,14 @@
                             x:Name="CheckBox_Filter"/>
                         <CheckBox
                             Margin="5"
-                            Content="Оставлять ненуленвые значения"
+                            Content="Оставлять ненулевые значения"
                             HorizontalAlignment="Stretch"
                             x:Name="CheckBox_Filter_PRM"/>
+                        <CheckBox
+                            Margin="5"
+                            Content="Выделять PGN"
+                            HorizontalAlignment="Stretch"
+                            x:Name="CheckBox_Filter_PGN"/>
                         <Button
                             Width="120"
                             Height="25"

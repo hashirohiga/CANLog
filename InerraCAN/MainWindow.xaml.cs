@@ -41,6 +41,7 @@ using System.Globalization;
 using System.Reflection;
 using InerraCAN;
 using System.Collections;
+using System.Net;
 
 namespace InterraCAN
 {
@@ -51,7 +52,7 @@ namespace InterraCAN
     {
 
 
-        
+
         public MainWindow()
         {
             InitializeComponent();
@@ -64,10 +65,10 @@ namespace InterraCAN
         Dictionary<int, string> _comboBoxValues = new Dictionary<int, string>();
         List<string> _uniqId;
         List<string> _distinctData;
-        List<string> _files0 = new List<string>();         List<string> _files4 = new List<string>();
-        List<string> _files1 = new List<string>();         List<string> _files5 = new List<string>();
-        List<string> _files2 = new List<string>();         List<string> _files6 = new List<string>();
-        List<string> _files3 = new List<string>();         List<string> _files7 = new List<string>();
+        List<string> _files0 = new List<string>(); List<string> _files4 = new List<string>();
+        List<string> _files1 = new List<string>(); List<string> _files5 = new List<string>();
+        List<string> _files2 = new List<string>(); List<string> _files6 = new List<string>();
+        List<string> _files3 = new List<string>(); List<string> _files7 = new List<string>();
         List<string> _dataTime = new List<string>();
         List<string> _timings = new List<string>();
         List<int> _greenIndex = new List<int>();
@@ -98,14 +99,22 @@ namespace InterraCAN
         string _selectedID;
         string _files;
 
-        public PlotModel ModelByte0 { get; private set; }            public PlotModel ModelByte01LE { get; private set; }
-        public PlotModel ModelByte1 { get; private set; }            public PlotModel ModelByte23LE { get; private set; }
-        public PlotModel ModelByte2 { get; private set; }            public PlotModel ModelByte45LE { get; private set; }
-        public PlotModel ModelByte3 { get; private set; }            public PlotModel ModelByte67LE { get; private set; }
-        public PlotModel ModelByte4 { get; private set; }            public PlotModel ModelByte10BE { get; private set; }
-        public PlotModel ModelByte5 { get; private set; }            public PlotModel ModelByte32BE { get; private set; }
-        public PlotModel ModelByte6 { get; private set; }            public PlotModel ModelByte54BE { get; private set; }
-        public PlotModel ModelByte7 { get; private set; }            public PlotModel ModelByte76BE { get; private set; }
+        public PlotModel ModelByte0 { get; private set; }
+        public PlotModel ModelByte01LE { get; private set; }
+        public PlotModel ModelByte1 { get; private set; }
+        public PlotModel ModelByte23LE { get; private set; }
+        public PlotModel ModelByte2 { get; private set; }
+        public PlotModel ModelByte45LE { get; private set; }
+        public PlotModel ModelByte3 { get; private set; }
+        public PlotModel ModelByte67LE { get; private set; }
+        public PlotModel ModelByte4 { get; private set; }
+        public PlotModel ModelByte10BE { get; private set; }
+        public PlotModel ModelByte5 { get; private set; }
+        public PlotModel ModelByte32BE { get; private set; }
+        public PlotModel ModelByte6 { get; private set; }
+        public PlotModel ModelByte54BE { get; private set; }
+        public PlotModel ModelByte7 { get; private set; }
+        public PlotModel ModelByte76BE { get; private set; }
 
 
 
@@ -134,210 +143,210 @@ namespace InterraCAN
                 ofd.ShowDialog();
                 _currentFile = ofd;
             }
-                
-                
 
 
 
 
-                
-                if (_currentFile.FileName != "")
+
+
+
+            if (_currentFile.FileName != "")
+            {
+
+                TB_List.Visibility = Visibility.Hidden;
+                PB_Load.Value = 0;
+                Label_ProgressBar_Status.Content = "Обработка файла... (1 из 2)";
+                TB_List.Clear();
+                string filename = _currentFile.FileName;
+                string files = System.IO.File.ReadAllText(filename);
+                if (_files != null)
                 {
-                    
-                    TB_List.Visibility = Visibility.Hidden;
-                    PB_Load.Value = 0;
-                    Label_ProgressBar_Status.Content = "Обработка файла... (1 из 2)";
-                    TB_List.Clear();
-                    string filename = _currentFile.FileName;
-                    string files = System.IO.File.ReadAllText(filename);
-                    if (_files != null)
+                    int index = files.IndexOf("  ");
+                    files = files.Remove(0, index);
+                    _files = _files + files;
+                }
+                else
+                {
+                    _files = files;
+                }
+                List<string> words = new List<string>();
+                words = _files.Split('\n').ToList();
+                var oneWord = words[0];
+                words.RemoveRange(0, 2);
+                Label_Speed_CAN.Content = string.Concat(oneWord.Where(Char.IsDigit));
+                List<string> dataSheets = new List<string>();
+                _dataTime.Clear();
+
+                PB_Load.Value = PB_Load.Value + 20;
+                DoEvents();
+
+
+                int range;
+                //убираем тайминг, он не нужен для обработки и построения графика
+                dataSheets = words.ToList();
+
+                PB_Load.Value = PB_Load.Value + 20;
+                DoEvents();
+                for (int i = 0; i < words.Count; i++)
+                {
+                    if (dataSheets[i].Contains("Pause"))
                     {
-                            int index = files.IndexOf("  ");
-                            files = files.Remove(0, index);
-                            _files = _files + files;
+                        dataSheets.RemoveAt(i);
+                        words.RemoveAt(i);
+                        i--;
                     }
                     else
                     {
-                        _files = files;
-                    }
-                    List<string> words = new List<string>();
-                    words = _files.Split('\n').ToList();
-                    var oneWord = words[0];
-                    words.RemoveRange(0, 2);
-                    Label_Speed_CAN.Content = string.Concat(oneWord.Where(Char.IsDigit));
-                    List<string> dataSheets = new List<string>();
-                    _dataTime.Clear();
-
-                    PB_Load.Value = PB_Load.Value + 20;
-                    DoEvents();
-                    
-
-                    int range;
-                    //убираем тайминг, он не нужен для обработки и построения графика
-                    dataSheets = words.ToList();
-
-                    PB_Load.Value = PB_Load.Value + 20;
-                    DoEvents();
-                    for (int i = 0; i < words.Count; i++)
-                    {
-                        if (dataSheets[i].Contains("Pause"))
+                        dataSheets[i] = Regex.Replace(dataSheets[i], @"\s+", " ");
+                        range = dataSheets[i].IndexOf(' ', 0) + 1;
+                        while (range == 1)
                         {
-                            dataSheets.RemoveAt(i);
-                            words.RemoveAt(i);
-                            i--;
-                        }
-                        else
-                        {
-                            dataSheets[i] = Regex.Replace(dataSheets[i], @"\s+", " ");
+                            dataSheets[i] = dataSheets[i].Remove(0, 1);
                             range = dataSheets[i].IndexOf(' ', 0) + 1;
-                            while (range == 1)
-                            {
-                                dataSheets[i] = dataSheets[i].Remove(0, 1);
-                                range = dataSheets[i].IndexOf(' ', 0) + 1;
-                            }
-                            //dataTime.Add(dataSheets[i].Remove(range));
-                            _dataTime.Add(dataSheets[i]);
-                            dataSheets[i] = dataSheets[i].Remove(0, range);
                         }
-                        
-
-                        //Thread.Sleep(1);
+                        //dataTime.Add(dataSheets[i].Remove(range));
+                        _dataTime.Add(dataSheets[i]);
+                        dataSheets[i] = dataSheets[i].Remove(0, range);
                     }
+
+
+                    //Thread.Sleep(1);
+                }
                 PB_Load.Value = PB_Load.Value + 40;
                 DoEvents();
 
 
 
-                    //Оставляем нужные данные для гарфика, убирая между ID и сообщением значение
-                    int foundSpace1;
-                    int foundSpace2;
+                //Оставляем нужные данные для гарфика, убирая между ID и сообщением значение
+                int foundSpace1;
+                int foundSpace2;
 
 
 
-                    for (int i = 0; i < dataSheets.Count; i++)
+                for (int i = 0; i < dataSheets.Count; i++)
+                {
+
+                    foundSpace1 = dataSheets[i].IndexOf(' ', 0) + 1;
+                    foundSpace2 = dataSheets[i].IndexOf(' ', foundSpace1);
+                    if (foundSpace2 == -1 || foundSpace1 == 0)
                     {
-
-                        foundSpace1 = dataSheets[i].IndexOf(' ', 0) + 1;
-                        foundSpace2 = dataSheets[i].IndexOf(' ', foundSpace1);
-                        if (foundSpace2 == -1 || foundSpace1 == 0)
-                        {
-                            dataSheets.Remove(dataSheets[i]);
-                            continue;
-                        }
-                        dataSheets[i] = dataSheets[i].Remove(foundSpace1, foundSpace2 - foundSpace1);
-
-
-                        //Thread.Sleep(1);
+                        dataSheets.Remove(dataSheets[i]);
+                        continue;
                     }
-
-                    PB_Load.Value = PB_Load.Value + 20;
-                    DoEvents();
-                    Thread.Sleep(100);
-
-                    Label_Msg_In.Content = dataSheets.Count;
-                    List<string> distinctData = new List<string>();
-                    distinctData = dataSheets;
-                    _distinctData = distinctData;
-                    //создаем словарь
-                    Dictionary<string, List<List<string>>> messages = new Dictionary<string, List<List<string>>>();
-                    //список для уникальных ID
-                    List<string> uniqId = new List<string>();
-                    for (int i = 0; i < distinctData.Count; i++)
-                    {
-                        uniqId.Add(Regex.Replace(distinctData[i], @" \S*", ""));
-                    }
-                    uniqId = uniqId.Distinct().ToList();
-                    PB_Load.Value = PB_Load.Value + 15;
-                    DoEvents();
-                    Thread.Sleep(100);
-
-                    //удаление неизменяемых элементов, если этого хочет пользователь.
-                    List<string> containData = new List<string>();
-                    if (CheckBox_Filter.IsChecked == true)
-                    {
-                        for (int i = 0; i < uniqId.Count; i++)
-                        {
-                            containData = distinctData.FindAll(d => d.Contains(uniqId[i]));
-                            containData = containData.Distinct().ToList();
-                            if (containData.Count <= 1)
-                            {
-                                _dataTime.RemoveAll(d => d.Contains(uniqId[i]));
-                                distinctData.RemoveAll(d => d.Contains(uniqId[i]));
-                                uniqId.RemoveAt(i);
-                                i = i - 1;
-                            }
-                        }
-                        Label_Msq_Unique.Content = distinctData.Count;
+                    dataSheets[i] = dataSheets[i].Remove(foundSpace1, foundSpace2 - foundSpace1);
 
 
-                    }
+                    //Thread.Sleep(1);
+                }
 
+                PB_Load.Value = PB_Load.Value + 20;
+                DoEvents();
+                Thread.Sleep(100);
 
-                    PB_Load.Value = PB_Load.Value + 35;
-                    DoEvents();
-                    Thread.Sleep(100);
+                Label_Msg_In.Content = dataSheets.Count;
+                List<string> distinctData = new List<string>();
+                distinctData = dataSheets;
+                _distinctData = distinctData;
+                //создаем словарь
+                Dictionary<string, List<List<string>>> messages = new Dictionary<string, List<List<string>>>();
+                //список для уникальных ID
+                List<string> uniqId = new List<string>();
+                for (int i = 0; i < distinctData.Count; i++)
+                {
+                    uniqId.Add(Regex.Replace(distinctData[i], @" \S*", ""));
+                }
+                uniqId = uniqId.Distinct().ToList();
+                PB_Load.Value = PB_Load.Value + 15;
+                DoEvents();
+                Thread.Sleep(100);
 
-                    //заполняем обработанные данные в TextBox
-                    TB_List.Text = string.Join("\n", distinctData.ToArray());
-                    TB_List.Visibility = Visibility.Visible;
-                    List<int> sortUniqId = new List<int>();
+                //удаление неизменяемых элементов, если этого хочет пользователь.
+                List<string> containData = new List<string>();
+                if (CheckBox_Filter.IsChecked == true)
+                {
                     for (int i = 0; i < uniqId.Count; i++)
                     {
-                        sortUniqId.Add(Convert.ToInt32(uniqId[i].Remove(0, 2), 16));
-                        //Convert.ToInt32(massOneByte[i], 16)
-                    }
-                    PB_Load.Value = PB_Load.Value + 5;
-
-
-                    sortUniqId = sortUniqId.OrderBy(s => s).ToList();
-                    if (uniqId[0].Length == 5)
-                    {
-                        uniqId.Clear();
-                        for (int i = 0; i < sortUniqId.Count; i++)
+                        containData = distinctData.FindAll(d => d.Contains(uniqId[i]));
+                        containData = containData.Distinct().ToList();
+                        if (containData.Count <= 1)
                         {
-                            uniqId.Add(Convert.ToString(sortUniqId[i], 16));
-                            if (uniqId[i].Length != 3)
-                            {
-                                uniqId[i] = "0" + uniqId[i].ToUpper();
-                                uniqId[i] = "0x" + uniqId[i].ToUpper();
-                            }
-                            else
-                            {
-                                uniqId[i] = "0x" + uniqId[i].ToUpper();
-                            }
-
+                            _dataTime.RemoveAll(d => d.Contains(uniqId[i]));
+                            distinctData.RemoveAll(d => d.Contains(uniqId[i]));
+                            uniqId.RemoveAt(i);
+                            i = i - 1;
                         }
                     }
-                    else
+                    Label_Msq_Unique.Content = distinctData.Count;
+
+
+                }
+
+
+                PB_Load.Value = PB_Load.Value + 35;
+                DoEvents();
+                Thread.Sleep(100);
+
+                //заполняем обработанные данные в TextBox
+                TB_List.Text = string.Join("\n", distinctData.ToArray());
+                TB_List.Visibility = Visibility.Visible;
+                List<int> sortUniqId = new List<int>();
+                for (int i = 0; i < uniqId.Count; i++)
+                {
+                    sortUniqId.Add(Convert.ToInt32(uniqId[i].Remove(0, 2), 16));
+                    //Convert.ToInt32(massOneByte[i], 16)
+                }
+                PB_Load.Value = PB_Load.Value + 5;
+
+
+                sortUniqId = sortUniqId.OrderBy(s => s).ToList();
+                if (uniqId[0].Length == 5)
+                {
+                    uniqId.Clear();
+                    for (int i = 0; i < sortUniqId.Count; i++)
                     {
-                        uniqId.Clear();
-                        for (int i = 0; i < sortUniqId.Count; i++)
+                        uniqId.Add(Convert.ToString(sortUniqId[i], 16));
+                        if (uniqId[i].Length != 3)
                         {
-                            uniqId.Add(Convert.ToString(sortUniqId[i], 16));
-                            if (uniqId[i].Length != 8)
-                            {
-                                uniqId[i] = "0" + uniqId[i].ToUpper();
-                                uniqId[i] = "0x" + uniqId[i].ToUpper();
-                            }
-                            else
-                            {
-                                uniqId[i] = "0x" + uniqId[i].ToUpper();
-                            }
-
+                            uniqId[i] = "0" + uniqId[i].ToUpper();
+                            uniqId[i] = "0x" + uniqId[i].ToUpper();
                         }
+                        else
+                        {
+                            uniqId[i] = "0x" + uniqId[i].ToUpper();
+                        }
+
                     }
+                }
+                else
+                {
+                    uniqId.Clear();
+                    for (int i = 0; i < sortUniqId.Count; i++)
+                    {
+                        uniqId.Add(Convert.ToString(sortUniqId[i], 16));
+                        if (uniqId[i].Length != 8)
+                        {
+                            uniqId[i] = "0" + uniqId[i].ToUpper();
+                            uniqId[i] = "0x" + uniqId[i].ToUpper();
+                        }
+                        else
+                        {
+                            uniqId[i] = "0x" + uniqId[i].ToUpper();
+                        }
+
+                    }
+                }
 
 
-                    PB_Load.Value = PB_Load.Value + 10;
-                    DoEvents();
-                    Thread.Sleep(100);
+                PB_Load.Value = PB_Load.Value + 10;
+                DoEvents();
+                Thread.Sleep(100);
 
-                    LB_Uniq.ItemsSource = uniqId;
+                LB_Uniq.ItemsSource = uniqId;
 
-                    //лист сообщений
-                    //List<List<string>> listBytes = new List<List<string>>();
-                    //лист для одного сообщения
-                    List<string> listMsg = new List<string>();
+                //лист сообщений
+                //List<List<string>> listBytes = new List<List<string>>();
+                //лист для одного сообщения
+                List<string> listMsg = new List<string>();
                 int counter = 0;
                 PB_Load.Value = 0;
                 Label_ProgressBar_Status.Content = "Заполнение списков... (2 из 2)";
@@ -345,54 +354,54 @@ namespace InterraCAN
                 PB_Load.Value = PB_Load.Value + 1;
                 DoEvents();
                 for (int i = 0; i < uniqId.Count; i++)
-                    {
-                        List<List<string>> listBytes = new List<List<string>>();
+                {
+                    List<List<string>> listBytes = new List<List<string>>();
 
-                        containData = distinctData.FindAll(d => d.Contains(uniqId[i]));
+                    containData = distinctData.FindAll(d => d.Contains(uniqId[i]));
                     if (counter < i)
                     {
                         PB_Load.Value = PB_Load.Value + 1;
                         DoEvents();
                         counter++;
                     }
-                        for (int j = 0; j < containData.Count; j++)
+                    for (int j = 0; j < containData.Count; j++)
+                    {
+                        listMsg = containData[j].Split(' ').ToList();
+                        listMsg.RemoveAll(l => l.Contains(" "));
+                        listMsg.RemoveAll(l => l.Equals(string.Empty));
+                        listMsg.RemoveRange(0, 1);
+
+                        if (listMsg.Count < 8)
                         {
-                            listMsg = containData[j].Split(' ').ToList();
-                            listMsg.RemoveAll(l => l.Contains(" "));
-                            listMsg.RemoveAll(l => l.Equals(string.Empty));
-                            listMsg.RemoveRange(0, 1);
-
-                            if (listMsg.Count < 8)
+                            for (int x = listMsg.Count; x < 8; x++)
                             {
-                                for (int x = listMsg.Count; x < 8; x++)
-                                {
-                                    listMsg.Add("00");
-                                }
+                                listMsg.Add("00");
                             }
-                            listBytes.Add(listMsg);
                         }
-
-                        messages.Add(uniqId[i], listBytes);
-                        //listBytes.Clear();
+                        listBytes.Add(listMsg);
                     }
 
-                    PB_Load.Value = PB_Load.Value + 15;
-                    DoEvents();
-                    Thread.Sleep(100);
-                    Label_ProgressBar_Status.Content = "Обработка выполнена.";
-                    _messages = messages;
-                    _uniqId = uniqId;
-                    uniqId = null;
-                    TabControl_Analize.IsEnabled = true;
-                    Tab_Charts.IsEnabled = true;
-                    Tab_Charts.IsSelected = true;
-                    TabItemOneByte.IsSelected = true;
-                    LB_Uniq.SelectedIndex = 0;
-                    //для точки остановки
-                    List<string> uniqId1 = new List<string>();
-                    List<string> uniqId2 = new List<string>();
-                    Btn_PRM_CLick(sender, e);
+                    messages.Add(uniqId[i], listBytes);
+                    //listBytes.Clear();
                 }
+
+                PB_Load.Value = PB_Load.Value + 15;
+                DoEvents();
+                Thread.Sleep(100);
+                Label_ProgressBar_Status.Content = "Обработка выполнена.";
+                _messages = messages;
+                _uniqId = uniqId;
+                uniqId = null;
+                TabControl_Analize.IsEnabled = true;
+                Tab_Charts.IsEnabled = true;
+                Tab_Charts.IsSelected = true;
+                TabItemOneByte.IsSelected = true;
+                LB_Uniq.SelectedIndex = 0;
+                //для точки остановки
+                List<string> uniqId1 = new List<string>();
+                List<string> uniqId2 = new List<string>();
+                Btn_PRM_CLick(sender, e);
+            }
 
             else MessageBox.Show("Файл не был выбран.");
 
@@ -417,52 +426,52 @@ namespace InterraCAN
             _selectedID = (string)LB_Uniq.SelectedItem;
             //LB_Uniq.ItemsSource = _uniqId;
             //LB_Uniq.SelectedItem = _selectedID;
-                List<string> timing = new List<string>();
-                List<string> massOneByte = new List<string>();
-                List<string> massOneByte1 = new List<string>();
-                List<string> massOneByte2 = new List<string>();
-                List<string> massOneByte3 = new List<string>();
-                List<string> massOneByte4 = new List<string>();
-                List<string> massOneByte5 = new List<string>();
-                List<string> massOneByte6 = new List<string>();
-                List<string> massOneByte7 = new List<string>();
+            List<string> timing = new List<string>();
+            List<string> massOneByte = new List<string>();
+            List<string> massOneByte1 = new List<string>();
+            List<string> massOneByte2 = new List<string>();
+            List<string> massOneByte3 = new List<string>();
+            List<string> massOneByte4 = new List<string>();
+            List<string> massOneByte5 = new List<string>();
+            List<string> massOneByte6 = new List<string>();
+            List<string> massOneByte7 = new List<string>();
             List<float> massByte0 = new List<float>(); List<int> y0 = new List<int>();
-                List<float> massByte1 = new List<float>(); 
-                List<float> massByte2 = new List<float>(); 
-                List<float> massByte3 = new List<float>(); 
-                List<float> massByte4 = new List<float>(); 
-                List<float> massByte5 = new List<float>(); 
-                List<float> massByte6 = new List<float>(); 
-                List<float> massByte7 = new List<float>(); 
-                List<float> massByte01LE = new List<float>();
-                List<float> massByte23LE = new List<float>();
-                List<float> massByte45LE = new List<float>();
-                List<float> massByte67LE = new List<float>();
-                List<float> massByte10BE = new List<float>();
-                List<float> massByte32BE = new List<float>();
-                List<float> massByte54BE = new List<float>();
-                List<float> massByte76BE = new List<float>();
-                List<string> listBoxData = new List<string>();
-                List<string> replaseData0 = new List<string>();
-                List<string> distinctData = _distinctData;
+            List<float> massByte1 = new List<float>();
+            List<float> massByte2 = new List<float>();
+            List<float> massByte3 = new List<float>();
+            List<float> massByte4 = new List<float>();
+            List<float> massByte5 = new List<float>();
+            List<float> massByte6 = new List<float>();
+            List<float> massByte7 = new List<float>();
+            List<float> massByte01LE = new List<float>();
+            List<float> massByte23LE = new List<float>();
+            List<float> massByte45LE = new List<float>();
+            List<float> massByte67LE = new List<float>();
+            List<float> massByte10BE = new List<float>();
+            List<float> massByte32BE = new List<float>();
+            List<float> massByte54BE = new List<float>();
+            List<float> massByte76BE = new List<float>();
+            List<string> listBoxData = new List<string>();
+            List<string> replaseData0 = new List<string>();
+            List<string> distinctData = _distinctData;
             if (_selectedID != null)
             {
                 distinctData = _distinctData.FindAll(d => d.Contains(_selectedID));
             }
-                string dataPlace;
+            string dataPlace;
             //if (LB_Uniq.SelectedItem != null)
             //{
             string identy = string.Empty;
-            if (_selectedID != null )
+            if (_selectedID != null)
             {
-                
+
                 int range;
                 timing.Clear();
                 timing = _dataTime.FindAll(t => t.Contains(_selectedID));
                 if (CB_FilterOneByte.SelectedIndex == 0)
                 {
                     //CB_FilterOneByte.Items.Clear();
-                    LabelOneByte.Content = ("без фильтра"); 
+                    LabelOneByte.Content = ("без фильтра");
 
                 }
                 if (CB_FilterOneByte.SelectedItem == null)
@@ -472,20 +481,20 @@ namespace InterraCAN
                 }
                 if (CB_FilterOneByte.Items.Count == 0 &&
                     CB_FilterByte1.Items.Count == 0 &&
-                    CB_FilterByte2.Items.Count == 0 && 
-                    CB_FilterByte3.Items.Count == 0 && 
-                    CB_FilterByte4.Items.Count == 0 && 
-                    CB_FilterByte5.Items.Count == 0 && 
-                    CB_FilterByte6.Items.Count == 0 && 
+                    CB_FilterByte2.Items.Count == 0 &&
+                    CB_FilterByte3.Items.Count == 0 &&
+                    CB_FilterByte4.Items.Count == 0 &&
+                    CB_FilterByte5.Items.Count == 0 &&
+                    CB_FilterByte6.Items.Count == 0 &&
                     CB_FilterByte7.Items.Count == 0 ||
-                    (CB_FilterOneByte.SelectedIndex == -1 ||    CB_FilterOneByte.SelectedIndex == 0) &&
-                    (CB_FilterByte1.SelectedIndex == -1  ||     CB_FilterByte1.SelectedIndex == 0)   &&
-                    (CB_FilterByte2.SelectedIndex == -1  ||     CB_FilterByte2.SelectedIndex == 0)   &&
-                    (CB_FilterByte3.SelectedIndex == -1  ||     CB_FilterByte3.SelectedIndex == 0)   &&
-                    (CB_FilterByte4.SelectedIndex == -1  ||     CB_FilterByte4.SelectedIndex == 0)   &&
-                    (CB_FilterByte5.SelectedIndex == -1  ||     CB_FilterByte5.SelectedIndex == 0)   &&
-                    (CB_FilterByte6.SelectedIndex == -1  ||     CB_FilterByte6.SelectedIndex == 0)   &&
-                    (CB_FilterByte7.SelectedIndex == -1 ||      CB_FilterByte7.SelectedIndex == 0))
+                    (CB_FilterOneByte.SelectedIndex == -1 || CB_FilterOneByte.SelectedIndex == 0) &&
+                    (CB_FilterByte1.SelectedIndex == -1 || CB_FilterByte1.SelectedIndex == 0) &&
+                    (CB_FilterByte2.SelectedIndex == -1 || CB_FilterByte2.SelectedIndex == 0) &&
+                    (CB_FilterByte3.SelectedIndex == -1 || CB_FilterByte3.SelectedIndex == 0) &&
+                    (CB_FilterByte4.SelectedIndex == -1 || CB_FilterByte4.SelectedIndex == 0) &&
+                    (CB_FilterByte5.SelectedIndex == -1 || CB_FilterByte5.SelectedIndex == 0) &&
+                    (CB_FilterByte6.SelectedIndex == -1 || CB_FilterByte6.SelectedIndex == 0) &&
+                    (CB_FilterByte7.SelectedIndex == -1 || CB_FilterByte7.SelectedIndex == 0))
 
 
 
@@ -506,8 +515,8 @@ namespace InterraCAN
                     }
                     var lastitem = timing.Last();
                     int maxLenght = timing.Find(t => t.Contains(lastitem)).Length;
-                    
-                    
+
+
                     for (int i = 0; i < timing.Count; i++)
                     {
                         while (timing[i].Length < maxLenght)
@@ -597,14 +606,14 @@ namespace InterraCAN
                     for (int i = 0; i < _messages[_selectedID].Count; i++)
                     {
 
-                            massOneByte.Add(Convert.ToString(_messages[_selectedID][i][0]));
-                            massOneByte1.Add(Convert.ToString(_messages[_selectedID][i][1]));
-                            massOneByte2.Add(Convert.ToString(_messages[_selectedID][i][2]));
-                            massOneByte3.Add(Convert.ToString(_messages[_selectedID][i][3]));
-                            massOneByte4.Add(Convert.ToString(_messages[_selectedID][i][4]));
-                            massOneByte5.Add(Convert.ToString(_messages[_selectedID][i][5]));
-                            massOneByte6.Add(Convert.ToString(_messages[_selectedID][i][6]));
-                            massOneByte7.Add(Convert.ToString(_messages[_selectedID][i][7]));
+                        massOneByte.Add(Convert.ToString(_messages[_selectedID][i][0]));
+                        massOneByte1.Add(Convert.ToString(_messages[_selectedID][i][1]));
+                        massOneByte2.Add(Convert.ToString(_messages[_selectedID][i][2]));
+                        massOneByte3.Add(Convert.ToString(_messages[_selectedID][i][3]));
+                        massOneByte4.Add(Convert.ToString(_messages[_selectedID][i][4]));
+                        massOneByte5.Add(Convert.ToString(_messages[_selectedID][i][5]));
+                        massOneByte6.Add(Convert.ToString(_messages[_selectedID][i][6]));
+                        massOneByte7.Add(Convert.ToString(_messages[_selectedID][i][7]));
 
 
                         //if (CB_FilterOneByte.SelectedItem != null)
@@ -642,7 +651,7 @@ namespace InterraCAN
                                 massByte7.Add(Convert.FromHexString(_messages[_selectedID][i][7]).ToList()[0]);
                             }
                         }
-                    
+
                         massByte01LE.Add(Convert.ToInt32(_messages[_selectedID][i][0] + _messages[_selectedID][i][1], 16));
                         massByte23LE.Add(Convert.ToInt32(_messages[_selectedID][i][2] + _messages[_selectedID][i][3], 16));
                         massByte45LE.Add(Convert.ToInt32(_messages[_selectedID][i][4] + _messages[_selectedID][i][5], 16));
@@ -654,11 +663,11 @@ namespace InterraCAN
                     }
                     for (int i = 0; i < distinctData.Count; i++)
                     {
-                        
-                            dataPlace = Regex.Replace(distinctData[i], "\\w{3,}\\s+", "");
-                            dataPlace = Regex.Replace(dataPlace, "\\s\\w*", "");
-                            replaseData0.Add(dataPlace);
-                        
+
+                        dataPlace = Regex.Replace(distinctData[i], "\\w{3,}\\s+", "");
+                        dataPlace = Regex.Replace(dataPlace, "\\s\\w*", "");
+                        replaseData0.Add(dataPlace);
+
                     }
                     //replaseData0 = replaseData0.FindAll(d => d.Contains(_selectedID));
                     for (int i = 0; i < timing.Count; i++)
@@ -733,7 +742,7 @@ namespace InterraCAN
                 {
                     //CB_FilterOneByte.Items.Clear();
                     LabelOneByte.Content = _itemByte0Selected;
-                    
+
                 }
                 else
                 {
@@ -749,42 +758,42 @@ namespace InterraCAN
                 //_byteSelected = CB_FilterOneByte.SelectedIndex;
                 //if (_listForCBox.Count == 0)
                 //{
-                    LabelOneByte.Content = CB_FilterOneByte.SelectedItem;
-                    _files0.Clear();
-                    _files1.Clear();
-                    _files2.Clear();
-                    _files3.Clear();
-                    _files4.Clear();
-                    _files5.Clear();
-                    _files6.Clear();
-                    _files7.Clear();
-                    List<int> converter = new List<int>();
-                    List<int> converter1 = new List<int>();
-                    List<int> converter2 = new List<int>();
-                    List<int> converter3 = new List<int>();
-                    List<int> converter4 = new List<int>();
-                    List<int> converter5 = new List<int>();
-                    List<int> converter6 = new List<int>();
-                    List<int> converter7 = new List<int>();
+                LabelOneByte.Content = CB_FilterOneByte.SelectedItem;
+                _files0.Clear();
+                _files1.Clear();
+                _files2.Clear();
+                _files3.Clear();
+                _files4.Clear();
+                _files5.Clear();
+                _files6.Clear();
+                _files7.Clear();
+                List<int> converter = new List<int>();
+                List<int> converter1 = new List<int>();
+                List<int> converter2 = new List<int>();
+                List<int> converter3 = new List<int>();
+                List<int> converter4 = new List<int>();
+                List<int> converter5 = new List<int>();
+                List<int> converter6 = new List<int>();
+                List<int> converter7 = new List<int>();
 
-                    List<string> strings = new List<string>();
+                List<string> strings = new List<string>();
 
-                    massOneByte = massOneByte.Distinct().ToList();
-                    massOneByte1 = massOneByte1.Distinct().ToList();
-                    massOneByte2 = massOneByte2.Distinct().ToList();
-                    massOneByte3 = massOneByte3.Distinct().ToList();
-                    massOneByte4 = massOneByte4.Distinct().ToList();
-                    massOneByte5 = massOneByte5.Distinct().ToList();
-                    massOneByte6 = massOneByte6.Distinct().ToList();
-                    massOneByte7 = massOneByte7.Distinct().ToList();
-                    _files0 = SortingCBox(massOneByte);
-                    _files1 = SortingCBox(massOneByte1);
-                    _files2 = SortingCBox(massOneByte2);
-                    _files3 = SortingCBox(massOneByte3);
-                    _files4 = SortingCBox(massOneByte4);
-                    _files5 = SortingCBox(massOneByte5);
-                    _files6 = SortingCBox(massOneByte6);
-                    _files7 = SortingCBox(massOneByte7);
+                massOneByte = massOneByte.Distinct().ToList();
+                massOneByte1 = massOneByte1.Distinct().ToList();
+                massOneByte2 = massOneByte2.Distinct().ToList();
+                massOneByte3 = massOneByte3.Distinct().ToList();
+                massOneByte4 = massOneByte4.Distinct().ToList();
+                massOneByte5 = massOneByte5.Distinct().ToList();
+                massOneByte6 = massOneByte6.Distinct().ToList();
+                massOneByte7 = massOneByte7.Distinct().ToList();
+                _files0 = SortingCBox(massOneByte);
+                _files1 = SortingCBox(massOneByte1);
+                _files2 = SortingCBox(massOneByte2);
+                _files3 = SortingCBox(massOneByte3);
+                _files4 = SortingCBox(massOneByte4);
+                _files5 = SortingCBox(massOneByte5);
+                _files6 = SortingCBox(massOneByte6);
+                _files7 = SortingCBox(massOneByte7);
 
                 //for (int i = 0; i < massOneByte.Count; i++)
                 //{
@@ -858,7 +867,7 @@ namespace InterraCAN
 
                 //}
                 plotByte0.Model = ModelByte0;
-                
+
                 ModelByte0.MouseDown += (s, e) =>
                 {
                     if (e.IsShiftDown == true)
@@ -882,12 +891,12 @@ namespace InterraCAN
                             }
                         }
 
-                    } 
+                    }
                 };
 
                 plotByte0.Model.TrackerChanged += (s, e) =>
                 {
-                    
+
                     if (e.HitResult != null)
                     {
                         e.HitResult.Text = "Время: " + _timings[Convert.ToInt32(e.HitResult.DataPoint.X)];
@@ -1713,9 +1722,9 @@ namespace InterraCAN
             if (_selectedID != null)
             {
                 int findID;
-                
+
                 List<string> replaseData1 = new List<string>();
-                
+
 
                 LB_Messages.ItemsSource = string.Empty;
 
@@ -1726,21 +1735,21 @@ namespace InterraCAN
                     if (PRM_Commits_List[i].Contains(_selectedID))
                     {
                         TB_PRM_Commits.Text = PRM_Commits_List[i];
-                        
+
                     }
                     //else
                     //{
                     //    TB_PRM_Commits.Clear();
                     //}
                 }
-                    //_commits.Add(_uniqId.FindIndex(u => u.Contains(IdAdress)), words[i]);
+                //_commits.Add(_uniqId.FindIndex(u => u.Contains(IdAdress)), words[i]);
                 _timings.Clear();
                 _timings = timing;
                 if (_markedUniqId.Items.Count == 0)
                 {
                     _markedUniqId = LB_Uniq;
                 }
-                if (_markedUniqId.Items.Count != 0 )
+                if (_markedUniqId.Items.Count != 0)
                 {
                     _markedUniqId.SelectedIndex = LB_Uniq.SelectedIndex;
                     LB_Uniq = _markedUniqId;
@@ -1769,45 +1778,45 @@ namespace InterraCAN
 
             if (TabItemOneByte.IsSelected == true && LB_Uniq.SelectedItem != null)
             {
-                
+
                 //TabItemOneByte.Refresh();
 
                 //if (LabelOneByte.Content != null)
                 //{
                 //CB_FilterOneByte.SelectedItem = LabelOneByte.Content.ToString();
                 _comboBoxValues.Clear();
-                    if (CB_FilterOneByte.SelectedIndex > 0)
-                    {
-                        _comboBoxValues.Add(0, (string)CB_FilterOneByte.SelectedItem);
-                    }
-                    if (CB_FilterByte1.SelectedIndex > 0)
-                    {
-                        _comboBoxValues.Add(1, (string)CB_FilterByte1.SelectedItem);
-                    }
-                    if (CB_FilterByte2.SelectedIndex > 0)
-                    {
-                        _comboBoxValues.Add(2, (string)CB_FilterByte2.SelectedItem);
-                    }
-                    if (CB_FilterByte3.SelectedIndex > 0)
-                    {
-                        _comboBoxValues.Add(3, (string)CB_FilterByte3.SelectedItem);
-                    }
-                    if (CB_FilterByte4.SelectedIndex > 0)
-                    {
-                        _comboBoxValues.Add(4, (string)CB_FilterByte4.SelectedItem);
-                    }
-                    if (CB_FilterByte5.SelectedIndex > 0)
-                    {
-                        _comboBoxValues.Add(5, (string)CB_FilterByte5.SelectedItem);
-                    }
-                    if (CB_FilterByte6.SelectedIndex > 0)
-                    {
-                        _comboBoxValues.Add(6, (string)CB_FilterByte6.SelectedItem);
-                    }
-                    if (CB_FilterByte7.SelectedIndex > 0)
-                    {
-                        _comboBoxValues.Add(7, (string)CB_FilterByte7.SelectedItem);
-                    }
+                if (CB_FilterOneByte.SelectedIndex > 0)
+                {
+                    _comboBoxValues.Add(0, (string)CB_FilterOneByte.SelectedItem);
+                }
+                if (CB_FilterByte1.SelectedIndex > 0)
+                {
+                    _comboBoxValues.Add(1, (string)CB_FilterByte1.SelectedItem);
+                }
+                if (CB_FilterByte2.SelectedIndex > 0)
+                {
+                    _comboBoxValues.Add(2, (string)CB_FilterByte2.SelectedItem);
+                }
+                if (CB_FilterByte3.SelectedIndex > 0)
+                {
+                    _comboBoxValues.Add(3, (string)CB_FilterByte3.SelectedItem);
+                }
+                if (CB_FilterByte4.SelectedIndex > 0)
+                {
+                    _comboBoxValues.Add(4, (string)CB_FilterByte4.SelectedItem);
+                }
+                if (CB_FilterByte5.SelectedIndex > 0)
+                {
+                    _comboBoxValues.Add(5, (string)CB_FilterByte5.SelectedItem);
+                }
+                if (CB_FilterByte6.SelectedIndex > 0)
+                {
+                    _comboBoxValues.Add(6, (string)CB_FilterByte6.SelectedItem);
+                }
+                if (CB_FilterByte7.SelectedIndex > 0)
+                {
+                    _comboBoxValues.Add(7, (string)CB_FilterByte7.SelectedItem);
+                }
                 string msgId = (string)LB_Uniq.SelectedItem;
                 LB_Uniq.SelectedIndex = -1;
 
@@ -1893,8 +1902,8 @@ namespace InterraCAN
             //}
             //else
             //{
-                
-                
+
+
             //    //CB_FilterOneByte.SelectionChanged -= CB_FilterOneByte_SelectionChanged;
             //    //LB_Uniq.SelectionChanged -= Lb_Uniq_SelectionChanged;
             //}
@@ -1934,14 +1943,14 @@ namespace InterraCAN
         {
 
             int index = LB_Uniq.SelectedIndex;
-            if (_markedUniqId.Items.Count !=  0)
+            if (_markedUniqId.Items.Count != 0)
             {
                 LB_Uniq = _markedUniqId;
-            } 
+            }
             ListBoxItem lbi = (ListBoxItem)_markedUniqId.ItemContainerGenerator.ContainerFromIndex(index);
             lbi.Foreground = Brushes.Green;
             _greenIndex.Add(index);
-            
+
             //lbi.SetValue();
             LB_Uniq = _markedUniqId;
         }
@@ -1988,7 +1997,7 @@ namespace InterraCAN
                     LB_Uniq = _markedUniqId;
                 }
                 ListBoxItem lbi = (ListBoxItem)_markedUniqId.ItemContainerGenerator.ContainerFromIndex(i);
-                
+
                 if (lbi == null)
                 {
                     LB_Uniq.UpdateLayout();
@@ -1998,10 +2007,10 @@ namespace InterraCAN
 
 
 
-                    if (lbi.Foreground == Brushes.Red)
-                    {
-                        lbi.Visibility = Visibility.Collapsed;
-                    }
+                if (lbi.Foreground == Brushes.Red)
+                {
+                    lbi.Visibility = Visibility.Collapsed;
+                }
                 LB_Uniq = _markedUniqId;
             }
             LB_Uniq.ScrollIntoView(LB_Uniq.Items[0]);
@@ -2035,7 +2044,7 @@ namespace InterraCAN
         {
             for (int i = 0; i < LB_Uniq.Items.Count; i++)
             {
-                
+
                 ListBoxItem lbi = (ListBoxItem)_markedUniqId.ItemContainerGenerator.ContainerFromIndex(i);
                 if (lbi == null)
                 {
@@ -2043,12 +2052,12 @@ namespace InterraCAN
                     LB_Uniq.ScrollIntoView(LB_Uniq.Items[i]);
                     lbi = (ListBoxItem)_markedUniqId.ItemContainerGenerator.ContainerFromIndex(i);
                 }
-                    if (lbi.Foreground != Brushes.Green)
-                    {
-                        lbi.Visibility = Visibility.Collapsed;
-                    }
+                if (lbi.Foreground != Brushes.Green)
+                {
+                    lbi.Visibility = Visibility.Collapsed;
+                }
                 LB_Uniq = _markedUniqId;
-                
+
             }
             LB_Uniq.ScrollIntoView(LB_Uniq.Items[0]);
         }
@@ -2059,26 +2068,26 @@ namespace InterraCAN
             logFileName = logFileName.Remove(logFileName.Length - 4);
             string textFileName = logFileName + "_export.txt";
             string docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            
+
             List<string> textLines = new List<string>();
             try
             {
-                if (File.Exists(docPath+ "\\" + textFileName) == true)
+                if (File.Exists(docPath + "\\" + textFileName) == true)
                 {
-                    File.Delete(docPath + "\\"+textFileName);
+                    File.Delete(docPath + "\\" + textFileName);
                 }
 
-                    for (int i = 0; i < LB_Uniq.Items.Count; i++) // перебираем данные    
+                for (int i = 0; i < LB_Uniq.Items.Count; i++) // перебираем данные    
+                {
+                    ListBoxItem lbi = (ListBoxItem)_markedUniqId.ItemContainerGenerator.ContainerFromIndex(i);
+                    if (lbi == null)
                     {
-                        ListBoxItem lbi = (ListBoxItem)_markedUniqId.ItemContainerGenerator.ContainerFromIndex(i);
-                        if (lbi == null)
-                        {
-                            LB_Uniq.UpdateLayout();
-                            LB_Uniq.ScrollIntoView(LB_Uniq.Items[i]);
-                            lbi = (ListBoxItem)_markedUniqId.ItemContainerGenerator.ContainerFromIndex(i);
-                        }
-                        if (lbi.Foreground == Brushes.Green || lbi.Foreground == Brushes.Red || lbi.Visibility == Visibility.Collapsed)
-                        {
+                        LB_Uniq.UpdateLayout();
+                        LB_Uniq.ScrollIntoView(LB_Uniq.Items[i]);
+                        lbi = (ListBoxItem)_markedUniqId.ItemContainerGenerator.ContainerFromIndex(i);
+                    }
+                    if (lbi.Foreground == Brushes.Green || lbi.Foreground == Brushes.Red || lbi.Visibility == Visibility.Collapsed)
+                    {
                         if (_commits.ContainsKey(i) == true)
                         {
                             textLines.Add(LB_Uniq.Items[i] + "|" + lbi.Foreground.ToString() + "|" + lbi.Visibility + "|" + _commits[i]);
@@ -2087,10 +2096,10 @@ namespace InterraCAN
                         {
                             textLines.Add(LB_Uniq.Items[i] + "|" + lbi.Foreground.ToString() + "|" + lbi.Visibility);
                         }
-                        }
-
-
                     }
+
+
+                }
                 File.AppendAllLines(System.IO.Path.Combine(docPath, textFileName), textLines);
                 if (textLines.Count == 0)
                 {
@@ -2173,7 +2182,7 @@ namespace InterraCAN
                 }
 
             }
-            
+
         }
 
         private void LB_Uniq_Scroll(object sender, System.Windows.Controls.Primitives.ScrollEventArgs e)
@@ -2210,7 +2219,7 @@ namespace InterraCAN
             if (_markedUniqId.Items.Count != 0)
             {
                 //LB_Uniq.ItemContainerGenerator.
-                
+
                 for (int i = 0; i < _greenIndex.Count; i++)
                 {
                     ListBoxItem lbi = (ListBoxItem)LB_Uniq.ItemContainerGenerator.ContainerFromIndex(_greenIndex[i]);
@@ -2248,7 +2257,7 @@ namespace InterraCAN
         {
             myPopup.IsOpen = true;
             //string userCommit = Microsoft.VisualBasic.Interaction.InputBox("Комментарий","");
-            
+
             //_commits.Add(LB_Uniq.SelectedIndex, userCommit);
             //int y = 0;
             //MenuItemAddCommit.Visibility = Visibility.Collapsed;
@@ -2264,14 +2273,14 @@ namespace InterraCAN
                 ofd.ShowDialog();
                 _currentFile = ofd;
                 _countACE = true;
-                Btn_ACE( sender, e);
-                
+                Btn_ACE(sender, e);
+
             }
         }
 
         private void BtnSaveCommit(object sender, RoutedEventArgs e)
         {
-            
+
             if (TB_Commit.Text != null && TB_Commit.Text != string.Empty)
             {
                 if (_commits.ContainsKey(LB_Uniq.SelectedIndex))
@@ -2318,7 +2327,7 @@ namespace InterraCAN
                 if (x.Length == 1)
                 {
                     x = ("0" + x);
-                } 
+                }
                 //x = x.ToUpper();
                 strings.Add(x.ToUpper());
             }
@@ -2327,12 +2336,14 @@ namespace InterraCAN
         //public static RoutedCommand ShiftAndLeftClick = new RoutedCommand();
         CommandBinding ShiftAndLeftClick = new CommandBinding();
         List<string> PRM_Commits_List = new List<string>();
-        Dictionary<string ,List<string>> _dictForCommitsPMR = new Dictionary<string, List<string>>();
+        Dictionary<string, List<string>> _dictForCommitsPMR = new Dictionary<string, List<string>>();
 
         private void Btn_PRM_CLick(object sender, RoutedEventArgs e)
         {
             _dictForCommitsPMR.Clear();
-            var readCFG = System.IO.File.ReadAllText("PRM.cfg");
+            var MyIni = new IniFiles("Settings.ini");
+            var ReadFile = MyIni.ReadINI("InterraCAN", "ReadFile");
+            //var readCFG = System.IO.File.ReadAllText("PRM.cfg");
 
             //OpenFileDialog ofd = new OpenFileDialog();
             //if (ofd.FileName == "")
@@ -2344,185 +2355,259 @@ namespace InterraCAN
             //string files = System.IO.File.ReadAllText(filename, Encoding.UTF8);
             //string files = System.IO.File.ReadAllText($"..\\prm_xxxxxxxx1.txt");
 
-            string files = System.IO.File.ReadAllText(readCFG+".txt");
+            //string files = System.IO.File.ReadAllText(readCFG + ".txt");
+            string files = System.IO.File.ReadAllText(ReadFile);
             //string files = System.IO.File.ReadAllText("C:\\Users\\technic\\Downloads\\prm_xxxxxxxx1.txt");
             //\r\n\r\n\r\n
             List<string> words = files.Split("Адрес").ToList();
-                words.RemoveAt(0);
-                for (int i = 0; i < words.Count; i++)
-                {
-                    //words[i] = Encoding.Default.GetString(words[i]);
-                    ////words[i] = 
-                    if (words[i] == "")
-                    {
-                        words.RemoveAt(i);
-                        i--;
-                    }
-                    else
-                    {
-                        //byte[] bytes = Encoding.Default.GetBytes(words[i]);
-                        //string encodeWord = Encoding.Unicode.GetString(bytes);
-                        int firstIndex = words[i].IndexOf("0");
-                        int lastIndex = words[i].IndexOf("\r", firstIndex);
-                        
-                        string IdAdress = words[i].Substring(firstIndex, lastIndex - firstIndex);
-                        if (_uniqId.Find(u => u.Contains(IdAdress)) != null)
-                        {
-                            List<string> PRM_bytes = new List<string>();
-                            PRM_bytes = words[i].Split("\r\n\r\n").ToList();
-                            PRM_bytes.RemoveAt(0);
-                            
-                            //PRM_Commits_List.Add(words[i]);
-                            _dictForCommitsPMR.Add(IdAdress, PRM_bytes);
-                            //_commits.Add(_uniqId.FindIndex(u => u.Contains(IdAdress)), words[i]);
-                            for (int j = 0; j < _dictForCommitsPMR[IdAdress].Count; j++)
-                            {
-                                if (_dictForCommitsPMR[IdAdress][j] == "\r\n" || _dictForCommitsPMR[IdAdress][j] == "")
-                                {
-                                    _dictForCommitsPMR[IdAdress].RemoveAt(j);
-                                    j--;
-                                    break;
-                                }
-                                string message = _dictForCommitsPMR[IdAdress][j].Remove(0, _dictForCommitsPMR[IdAdress][j].IndexOf("\r\n"));
-                                //firstIndex = _dictForCommitsPMR[IdAdress][j].IndexOf(",")+1;
-                                //lastIndex = _dictForCommitsPMR[IdAdress][j].IndexOf("\r\n", firstIndex);
-                                firstIndex = message.IndexOf(",") + 1;
-                                lastIndex = message.IndexOf("\r\n", firstIndex);
-                                string stroke = message.Substring(firstIndex, lastIndex - firstIndex);
-                                string stringByte;
-                                string stringBit = null;
-                                if (stroke.IndexOf(",") != -1)
-                                {   
-                                    //indexer subIndex1 = 
-                                    stringByte = stroke.Remove(stroke.IndexOf(","));
-                                    stringByte = string.Concat(stringByte.Where(Char.IsDigit));
-                                    stringBit = stroke.Remove(0, stroke.IndexOf(","));
-                                    stringBit = string.Concat(stringBit.Where(Char.IsDigit));
-                                }
-                                else
-                                {
-                                     stringByte = string.Concat(stroke.Where(Char.IsDigit));
-                                }
-                                int y = 0;
-                                //ПЕРЕПИСАТЬ ЛОГИКУ
-                                //�
-                                //ЧТОБЫ БАЙТЕ ПРОВЕРЯЛИСЬ ВМЕСТЕ
-                                if (stringBit == null)
-                                {
-                                    if (stringByte.Length > 1)
-                                    {
+            words.RemoveAt(0);
+            List<string> uniqId = new List<string>();
+            List<string> regex1 = new List<string>();
+            List<string> regex2 = new List<string>();
 
-                                        _dictForCommitsPMR[IdAdress][j] = _dictForCommitsPMR[IdAdress][j].Replace("�����","байты");
-                                        int byte1 = Convert.ToInt32(stringByte.Substring(0, 1))-1;
-                                        int byte2 = Convert.ToInt32(stringByte.Substring(1, 1))-1;
-                                        var listForDict = _dictForCommitsPMR[IdAdress][j].Split("\r\n");
-                                        listForDict[1] = listForDict[1].Remove(0, listForDict[1].IndexOf(",") + 1);
-                                        _dictForCommitsPMR[IdAdress][j] = listForDict[1] + ";" + listForDict[0] + ";" + listForDict[2] + ";" + listForDict[3] + ";";
+            for (int i = 0; i < words.Count; i++)
+            {
+                //words[i] = Encoding.Default.GetString(words[i]);
+                ////words[i] = 
+                if (words[i] == "")
+                {
+                    words.RemoveAt(i);
+                    i--;
+                }
+                else
+                {
+
+                    //if (CheckBox_Filter_PGN.IsChecked == true)
+                    //{
+                    //    for (int j = 0; j < _uniqId.Count; j++)
+                    //    {
+                    //        //string regex1 = _uniqId[i]
+                    //        string regexStart = Regex.Replace(_uniqId[j], @"0x..", "");
+                    //        regex1.Add(Regex.Replace(_uniqId[j], @"......\b", ""));
+
+                    //        string regexEnd = Regex.Replace(regexStart, @"..\b", "");
+                    //        regex2.Add(Regex.Replace(_uniqId[j], @"........", ""));
+                    //        uniqId.Add(regexEnd);
+                    //    }
+                    //}
+                    //else
+                    //{
+                    uniqId = _uniqId;
+                    //}
+                    int firstIndex = words[i].IndexOf("0");
+                    int lastIndex = words[i].IndexOf("\r", firstIndex);
+
+                    string IdAdress = words[i].Substring(firstIndex, lastIndex - firstIndex);
+                    //if (CheckBox_Filter_PGN.IsChecked == true)
+                    //{
+
+                    //    //string regex1 = _uniqId[i]
+                    //    string regex = Regex.Replace(IdAdress, @"0x..", "");
+                    //    IdAdress = Regex.Replace(regex, @"..\b", "");
+
+
+                    //}
+                    if (uniqId.Find(u => u.Contains(IdAdress)) != null)
+                    {
+                        List<string> PRM_bytes = new List<string>();
+                        PRM_bytes = words[i].Split("\r\n\r\n").ToList();
+                        PRM_bytes.RemoveAt(0);
+
+                        //PRM_Commits_List.Add(words[i]);
+                        if (_dictForCommitsPMR.ContainsKey(IdAdress))
+                        {
+                            for (int j = 0; j < PRM_bytes.Count; j++)
+                            {
+                                _dictForCommitsPMR[IdAdress].Add(PRM_bytes[j]);
+                            }
+                            //_dictForCommitsPMR[IdAdress].Add(PRM_bytes);
+                        }
+                        else
+                        {
+                            _dictForCommitsPMR.Add(IdAdress, PRM_bytes);
+                        }
+
+                        //_commits.Add(_uniqId.FindIndex(u => u.Contains(IdAdress)), words[i]);
+                        for (int j = 0; j < _dictForCommitsPMR[IdAdress].Count; j++)
+                        {
+                            if (_dictForCommitsPMR[IdAdress][j] == "\r\n" || _dictForCommitsPMR[IdAdress][j] == "")
+                            {
+                                _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                j--;
+                                break;
+                            }
+                            if (_dictForCommitsPMR[IdAdress][j].Remove(5) == " байт")
+                            {
+                                continue;
+                            }
+                            string message = _dictForCommitsPMR[IdAdress][j].Remove(0, _dictForCommitsPMR[IdAdress][j].IndexOf("\r\n"));
+                            //firstIndex = _dictForCommitsPMR[IdAdress][j].IndexOf(",")+1;
+                            //lastIndex = _dictForCommitsPMR[IdAdress][j].IndexOf("\r\n", firstIndex);
+                            firstIndex = message.IndexOf(",") + 1;
+                            lastIndex = message.IndexOf("\r\n", firstIndex);
+                            string stroke = message.Substring(firstIndex, lastIndex - firstIndex);
+                            string stringByte;
+                            string stringBit = null;
+                            if (stroke.IndexOf(",") != -1)
+                            {
+                                //indexer subIndex1 = 
+                                stringByte = stroke.Remove(stroke.IndexOf(","));
+                                stringByte = string.Concat(stringByte.Where(Char.IsDigit));
+                                stringBit = stroke.Remove(0, stroke.IndexOf(","));
+                                stringBit = string.Concat(stringBit.Where(Char.IsDigit));
+                            }
+                            else
+                            {
+                                stringByte = string.Concat(stroke.Where(Char.IsDigit));
+                            }
+                            int y = 0;
+                            //ПЕРЕПИСАТЬ ЛОГИКУ
+                            //�
+                            //ЧТОБЫ БАЙТЕ ПРОВЕРЯЛИСЬ ВМЕСТЕ
+                            if (stringBit == null)
+                            {
+                                if (stringByte.Length > 1)
+                                {
+
+                                    _dictForCommitsPMR[IdAdress][j] = _dictForCommitsPMR[IdAdress][j].Replace("�����", "байты");
+                                    int byte1 = Convert.ToInt32(stringByte.Substring(0, 1)) - 1;
+                                    int byte2 = Convert.ToInt32(stringByte.Substring(1, 1)) - 1;
+                                    var listForDict = _dictForCommitsPMR[IdAdress][j].Split("\r\n");
+                                    listForDict[1] = listForDict[1].Remove(0, listForDict[1].IndexOf(",") + 1);
+                                    _dictForCommitsPMR[IdAdress][j] = listForDict[1] + ";" + listForDict[0] + ";" + listForDict[2] + ";" + listForDict[3] + ";";
 
                                     List<string> massByte = new List<string>();
-                                        for (int c = 0; c < _messages[IdAdress].Count; c++)
+                                    //if (CheckBox_Filter_PGN.IsChecked == true)
+                                    //{
+                                    //    for (int c = 0; c < _messages[regex1[i] + IdAdress + regex2[i]].Count; c++)
+                                    //    {
+                                    //        string strokeBytes = string.Empty;
+                                    //        int count = byte1;
+                                    //        for (int l = 0; l < byte2 - byte1 + 1; l++)
+                                    //        {
+                                    //            strokeBytes = strokeBytes + _messages[regex1[i] + IdAdress + regex2[i]][c][count];
+                                    //            count++;
+                                    //        }
+                                    //        //massByte.Add(_messages[IdAdress][c][byte1]+ _messages[IdAdress][c][byte2]);
+                                    //        massByte.Add(strokeBytes);
+                                    //    }
+                                    //}
+                                    //else
+                                    //{
+                                    for (int c = 0; c < _messages[IdAdress].Count; c++)
+                                    {
+                                        string strokeBytes = string.Empty;
+                                        int count = byte1;
+                                        for (int l = 0; l < byte2 - byte1 + 1; l++)
                                         {
-                                            string strokeBytes = string.Empty;
-                                            int count = byte1; 
-                                            for (int l = 0; l < byte2 - byte1 + 1; l++)
-                                            {
-                                                strokeBytes = strokeBytes + _messages[IdAdress][c][count];
-                                                count++;
-                                            }
-                                            //massByte.Add(_messages[IdAdress][c][byte1]+ _messages[IdAdress][c][byte2]);
-                                            massByte.Add(strokeBytes);
+                                            strokeBytes = strokeBytes + _messages[IdAdress][c][count];
+                                            count++;
                                         }
-                                        List<string> distinct = massByte.Distinct().ToList();
-                                        if (distinct.Count <= 1)
+                                        //massByte.Add(_messages[IdAdress][c][byte1]+ _messages[IdAdress][c][byte2]);
+                                        massByte.Add(strokeBytes);
+                                    }
+                                    //}
+                                    List<string> distinct = massByte.Distinct().ToList();
+                                    if (distinct.Count <= 1)
+                                    {
+                                        if (CheckBox_Filter_PRM.IsChecked == true)
                                         {
-                                            if (CheckBox_Filter_PRM.IsChecked == true)
-                                            {
-                                                if (distinct[0] == "0000")
-                                                {
-                                                    _dictForCommitsPMR[IdAdress].RemoveAt(j);
-                                                    j--;
-                                                }
-                                            }
-                                            else
+                                            if (distinct[0] == "0000")
                                             {
                                                 _dictForCommitsPMR[IdAdress].RemoveAt(j);
                                                 j--;
                                             }
-                                        }
-
-                                        
-                                        //int count = 0;
-                                        //int lenght = stringByte.Length;
-                                        //for (int x = 0; x < stringByte.Length; x++)
-                                        //{
-                                        //    int oneByte = Convert.ToInt32(stringByte.Substring(0, 1));
-                                        //    //int distinct = Convert.ToInt32(_messages[IdAdress][oneByte].Distinct());
-                                        //    List<string> massByte = new List<string>();
-                                        //    for (int c = 0; c < _messages[IdAdress].Count; c++)
-                                        //    {
-                                        //        massByte.Add(_messages[IdAdress][c][oneByte - 1]);
-                                        //    }
-                                        //    List<string> distinct = massByte.Distinct().ToList();
-                                        //    if (distinct.Count > 1)
-                                        //    {
-                                        //        stringByte.Remove(0, 1);
-                                        //        count++;
-                                        //    }
-                                        //    else
-                                        //    {
-                                        //        if (lenght == x && count != lenght)
-                                        //        {
-                                        //                _dictForCommitsPMR[IdAdress].RemoveAt(j);
-                                        //                j--;
-
-                                        //                break;
-
-                                        //        }
-
-                                        //    }
-                                        //}
-                                    }
-                                    else
-                                    {
-                                        _dictForCommitsPMR[IdAdress][j] = _dictForCommitsPMR[IdAdress][j].Replace("����", "байт");
-                                        var listForDict = _dictForCommitsPMR[IdAdress][j].Split("\r\n");
-                                        listForDict[1] = listForDict[1].Remove(0, listForDict[1].IndexOf(",") + 1);
-                                        _dictForCommitsPMR[IdAdress][j] = listForDict[1] + ";" + listForDict[0] + ";" + listForDict[2] + ";" + listForDict[3] + ";";
-                                        int oneByte = Convert.ToInt32(stringByte);
-                                        List<string> massByte = new List<string>();
-                                        for (int c = 0; c < _messages[IdAdress].Count; c++)
-                                        {
-                                            massByte.Add(_messages[IdAdress][c][oneByte - 1]);
-                                        }
-                                        List<string> distinct = massByte.Distinct().ToList();
-                                        if (distinct.Count > 1)
-                                        {
-                                            stringByte.Remove(0, 1);
                                         }
                                         else
                                         {
-                                            if (CheckBox_Filter_PRM.IsChecked == true)
-                                            {
-                                                if (distinct[0] == "00")
-                                                {
-                                                    _dictForCommitsPMR[IdAdress].RemoveAt(j);
-                                                    j--;
-                                                }
-                                            }
-                                            else
+                                            _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                            j--;
+                                        }
+                                    }
+
+
+                                    //int count = 0;
+                                    //int lenght = stringByte.Length;
+                                    //for (int x = 0; x < stringByte.Length; x++)
+                                    //{
+                                    //    int oneByte = Convert.ToInt32(stringByte.Substring(0, 1));
+                                    //    //int distinct = Convert.ToInt32(_messages[IdAdress][oneByte].Distinct());
+                                    //    List<string> massByte = new List<string>();
+                                    //    for (int c = 0; c < _messages[IdAdress].Count; c++)
+                                    //    {
+                                    //        massByte.Add(_messages[IdAdress][c][oneByte - 1]);
+                                    //    }
+                                    //    List<string> distinct = massByte.Distinct().ToList();
+                                    //    if (distinct.Count > 1)
+                                    //    {
+                                    //        stringByte.Remove(0, 1);
+                                    //        count++;
+                                    //    }
+                                    //    else
+                                    //    {
+                                    //        if (lenght == x && count != lenght)
+                                    //        {
+                                    //                _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                    //                j--;
+
+                                    //                break;
+
+                                    //        }
+
+                                    //    }
+                                    //}
+                                }
+                                else
+                                {
+                                    _dictForCommitsPMR[IdAdress][j] = _dictForCommitsPMR[IdAdress][j].Replace("����", "байт");
+                                    var listForDict = _dictForCommitsPMR[IdAdress][j].Split("\r\n");
+                                    listForDict[1] = listForDict[1].Remove(0, listForDict[1].IndexOf(",") + 1);
+                                    _dictForCommitsPMR[IdAdress][j] = listForDict[1] + ";" + listForDict[0] + ";" + listForDict[2] + ";" + listForDict[3] + ";";
+                                    int oneByte = Convert.ToInt32(stringByte);
+                                    List<string> massByte = new List<string>();
+                                    //if (CheckBox_Filter_PGN.IsChecked == true)
+                                    //{
+                                    //    for (int c = 0; c < _messages[regex1[i] + IdAdress + regex2[i]].Count; c++)
+                                    //    {
+                                    //        massByte.Add(_messages[regex1[i] + IdAdress + regex2[i]][c][oneByte - 1]);
+                                    //    }
+                                    //}
+                                    //else
+                                    //{
+                                    for (int c = 0; c < _messages[IdAdress].Count; c++)
+                                    {
+                                        massByte.Add(_messages[IdAdress][c][oneByte - 1]);
+                                    }
+                                    //}
+                                    List<string> distinct = massByte.Distinct().ToList();
+                                    if (distinct.Count > 1)
+                                    {
+                                        stringByte.Remove(0, 1);
+                                    }
+                                    else
+                                    {
+                                        if (CheckBox_Filter_PRM.IsChecked == true)
+                                        {
+                                            if (distinct[0] == "00")
                                             {
                                                 _dictForCommitsPMR[IdAdress].RemoveAt(j);
                                                 j--;
                                             }
-
-
                                         }
+                                        else
+                                        {
+                                            _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                            j--;
+                                        }
+
+
                                     }
                                 }
-                                else
-                                { 
-                                    if (stringBit.Length > 1)
-                                    {
+                            }
+                            else
+                            {
+                                if (stringBit.Length > 1)
+                                {
                                     int indexstroke = _dictForCommitsPMR[IdAdress][j].IndexOf(", ") + 6;
                                     string halfstroke1 = _dictForCommitsPMR[IdAdress][j].Substring(0, indexstroke);
                                     halfstroke1 = halfstroke1.Replace("����", "байт");
@@ -2530,132 +2615,304 @@ namespace InterraCAN
                                     halfstroke2 = halfstroke2.Replace("����", "биты");
                                     _dictForCommitsPMR[IdAdress][j] = halfstroke1 + halfstroke2;
                                     var listForDict = _dictForCommitsPMR[IdAdress][j].Split("\r\n");
-                                    listForDict[1] = listForDict[1].Remove(0, listForDict[1].IndexOf(",")+1);
+                                    listForDict[1] = listForDict[1].Remove(0, listForDict[1].IndexOf(",") + 1);
                                     _dictForCommitsPMR[IdAdress][j] = listForDict[1] + ";" + listForDict[0] + ";" + listForDict[2] + ";" + listForDict[3] + ";";
                                     int minBit = Convert.ToInt32(stringBit.Remove(1)) - 1;
-                                        int maxBit = Convert.ToInt32(stringBit.Remove(0,1)) - 1;
-                                        int oneByte = Convert.ToInt32(stringByte) - 1;
+                                    int maxBit = Convert.ToInt32(stringBit.Remove(0, 1)) - 1;
+                                    int oneByte = Convert.ToInt32(stringByte) - 1;
 
-                                            List<string> listBits = new List<string>();
-                                            //BitArray bits = new BitArray(_messages[IdAdress][0][oneByte]);
-                                            for (int c = 0; c < _messages[IdAdress].Count; c++)
-                                            {
-                                                var bits = Convert.ToInt32(_messages[IdAdress][c][oneByte], 16);
-                                                string stringBits = Convert.ToString(bits, 2);
-                                                while (stringBits.Length != 8)
-                                                {
-                                                    stringBits = "0" + stringBits;
-                                                }
-                                                //переворачиваем строку для правильной проверки битов
-                                            StringBuilder sb = new StringBuilder();
-                                            for (int h = stringBits.Length - 1; h >= 0; h--)
-                                            {
-                                                sb.Append(stringBits[h]);
-                                            }
-                                            string reverseBits = sb.ToString();
-                                            listBits.Add(reverseBits.Substring(minBit,(maxBit- minBit)+1));
-                                            }
-                                            List<string> distinct = listBits.Distinct().ToList();
-                                            if (distinct.Count <= 1)
-                                            {
-                                                if (CheckBox_Filter_PRM.IsChecked == true)
-                                                {
-                                                    string zeroBits = null;
-                                                    for (int d = 0; d < (maxBit - minBit) + 1; d++)
-                                                    {
-                                                        zeroBits = zeroBits + "0";
-                                                    }
-                                                    if (distinct[0] == zeroBits)
-                                                    {
-                                                        _dictForCommitsPMR[IdAdress].RemoveAt(j);
-                                                        j--;
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    _dictForCommitsPMR[IdAdress].RemoveAt(j);
-                                                    j--;
-                                                }
-
-
-
-                                            }
-
-                                            //�
-                                        
+                                    List<string> listBits = new List<string>();
+                                    //BitArray bits = new BitArray(_messages[IdAdress][0][oneByte]);
+                                    //if (CheckBox_Filter_PGN.IsChecked == true)
+                                    //{
+                                    //    for (int c = 0; c < _messages[regex1[i] + IdAdress + regex2[i]].Count; c++)
+                                    //    {
+                                    //        var bits = Convert.ToInt32(_messages[regex1[i] + IdAdress + regex2[i]][c][oneByte], 16);
+                                    //        string stringBits = Convert.ToString(bits, 2);
+                                    //        while (stringBits.Length != 8)
+                                    //        {
+                                    //            stringBits = "0" + stringBits;
+                                    //        }
+                                    //        //переворачиваем строку для правильной проверки битов
+                                    //        StringBuilder sb = new StringBuilder();
+                                    //        for (int h = stringBits.Length - 1; h >= 0; h--)
+                                    //        {
+                                    //            sb.Append(stringBits[h]);
+                                    //        }
+                                    //        string reverseBits = sb.ToString();
+                                    //        listBits.Add(reverseBits.Substring(minBit, (maxBit - minBit) + 1));
+                                    //    }
+                                    //}
+                                    //else
+                                    //{
+                                    for (int c = 0; c < _messages[IdAdress].Count; c++)
+                                    {
+                                        var bits = Convert.ToInt32(_messages[IdAdress][c][oneByte], 16);
+                                        string stringBits = Convert.ToString(bits, 2);
+                                        while (stringBits.Length != 8)
+                                        {
+                                            stringBits = "0" + stringBits;
+                                        }
+                                        //переворачиваем строку для правильной проверки битов
+                                        StringBuilder sb = new StringBuilder();
+                                        for (int h = stringBits.Length - 1; h >= 0; h--)
+                                        {
+                                            sb.Append(stringBits[h]);
+                                        }
+                                        string reverseBits = sb.ToString();
+                                        listBits.Add(reverseBits.Substring(minBit, (maxBit - minBit) + 1));
                                     }
-                                }
-                                //string.Concat(oneWord.Where(Char.IsDigit));
+                                    //}
+                                    List<string> distinct = listBits.Distinct().ToList();
+                                    if (distinct.Count <= 1)
+                                    {
+                                        if (CheckBox_Filter_PRM.IsChecked == true)
+                                        {
+                                            string zeroBits = null;
+                                            for (int d = 0; d < (maxBit - minBit) + 1; d++)
+                                            {
+                                                zeroBits = zeroBits + "0";
+                                            }
+                                            if (distinct[0] == zeroBits)
+                                            {
+                                                _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                                j--;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                            j--;
+                                        }
 
-                                
+
+
+                                    }
+
+                                    //�
+
+                                }
                             }
-                            string commitPRM = string.Empty;
-                            //= IdAdress + "\r\n";
-                            for (int j = 0; j < _dictForCommitsPMR[IdAdress].Count; j++)
-                            {
-                                commitPRM = commitPRM + IdAdress +_dictForCommitsPMR[IdAdress][j] +"\r\n" + "\r\n";
-                            }
-                            if (_dictForCommitsPMR[IdAdress].Count > 0)
-                            {
-                                PRM_Commits_List.Add(commitPRM);
-                            }
+                            //string.Concat(oneWord.Where(Char.IsDigit));
+
 
                         }
-                        
-                    }
-                }
+                        string commitPRM = string.Empty;
+                        //= IdAdress + "\r\n";
+                        for (int j = 0; j < _dictForCommitsPMR[IdAdress].Count; j++)
+                        {
+                            commitPRM = commitPRM + IdAdress + _dictForCommitsPMR[IdAdress][j] + "\r\n" + "\r\n";
+                        }
+                        if (_dictForCommitsPMR[IdAdress].Count > 0)
+                        {
+                            PRM_Commits_List.Add(commitPRM);
+                        }
 
-                //TB_PRM_Commits.Text = TB_PRM_Commits.Text + words[i];
-                //if (_dictForCommitsPMR.Count != 0)
-                //{
-                //    for (int i = 0; i < _dictForCommitsPMR.Count; i++)
-                //    {
-                //        for (int j = 0; j < _dictForCommitsPMR[].Count; j++)
-                //        {
-                //            //int firstIndex = _dictForCommitsPMR
-                //        }
-                //    }
-                //}
-                Tab_Charts.IsSelected = true;
-                Tab_Msg.IsSelected = true;
-                //string fileName = _currentFile.SafeFileName + "_J1939.txt";
-                //$"..\\prm_xxxxxxxx1.txt"
-                //string path = "C:\\Users\\technic\\Downloads\\" + _currentFile.SafeFileName + "_J1939.txt";
-                string path =_currentFile.FileName + "_J1939.txt";
-                if (File.Exists(path) == true)
-                {
-                    File.Delete(path);
+                    }
+
                 }
-                StreamWriter sw = new StreamWriter(path);
+            }
+            Dictionary<string, List<string>> dictPGN = new Dictionary<string, List<string>>();
+            if (CheckBox_Filter_PGN.IsChecked == true)
+            {
+                int dictcount = _dictForCommitsPMR.Keys.Count;
                 for (int i = 0; i < _dictForCommitsPMR.Keys.Count; i++)
                 {
-                    //var key = _dictForCommitsPMR.Take(i).Select(d => d.Key).First();
+
                     var key = _dictForCommitsPMR.ElementAt(i).Key;
-                if (_dictForCommitsPMR[key].Count != 0 )
+                    string regex = Regex.Replace(key, @"0x..", "");
+                    key = Regex.Replace(regex, @"..\b", "");
+                    List<string> dictList = _dictForCommitsPMR[_dictForCommitsPMR.ElementAt(i).Key];
+                    if (dictPGN.ContainsKey(key))
+                    {
+                        //for (int j = 0; j < dictList.Count; j++)
+                        //{
+                        //    dictPGN[key].Add(dictList[j]);
+                        //}
+                        dictPGN.Add(key + " (1)", dictList);
+                    }
+                    else
+                    {
+                        dictPGN.Add(key + _dictForCommitsPMR.ElementAt(i).Key, dictList);
+                        //_dictForCommitsPMR.Remove(_dictForCommitsPMR.ElementAt(i).Key);
+                    }
+
+                    //if (_dictForCommitsPMR.ContainsKey(key))
+                    //{
+                    //    List<string> dictList = _dictForCommitsPMR[_dictForCommitsPMR.ElementAt(i).Key];
+                    //    for (int j = 0; j < dictList.Count; j++)
+                    //    {
+                    //        _dictForCommitsPMR[key].Add(dictList[j]);
+                    //    }
+                    //    //_dictForCommitsPMR[IdAdress].Add(PRM_bytes);
+                    //}
+                    //else
+                    //{
+                    //    List<string> dictList = _dictForCommitsPMR[_dictForCommitsPMR.ElementAt(i).Key];
+                    //    _dictForCommitsPMR.Add(key, dictList);
+                    //    _dictForCommitsPMR.Remove(_dictForCommitsPMR.ElementAt(i).Key);
+
+                    //}
+
+
+
+                    //    //string regex1 = _uniqId[i]
+                    //    string regex = Regex.Replace(IdAdress, @"0x..", "");
+                    //    IdAdress = Regex.Replace(regex, @"..\b", "");
+                }
+                _dictForCommitsPMR = dictPGN;
+            }
+
+            //TB_PRM_Commits.Text = TB_PRM_Commits.Text + words[i];
+            //if (_dictForCommitsPMR.Count != 0)
+            //{
+            //    for (int i = 0; i < _dictForCommitsPMR.Count; i++)
+            //    {
+            //        for (int j = 0; j < _dictForCommitsPMR[].Count; j++)
+            //        {
+            //            //int firstIndex = _dictForCommitsPMR
+            //        }
+            //    }
+            //}
+            Tab_Charts.IsSelected = true;
+            Tab_Msg.IsSelected = true;
+            //string fileName = _currentFile.SafeFileName + "_J1939.txt";
+            //$"..\\prm_xxxxxxxx1.txt"
+            //string path = "C:\\Users\\technic\\Downloads\\" + _currentFile.SafeFileName + "_J1939.txt";
+            string path = _currentFile.FileName + "_J1939.txt";
+            string pathCMD = _currentFile.FileName + "_cmd.txt";
+            if (File.Exists(path) == true)
+            {
+                File.Delete(path);
+            }
+            if (File.Exists(pathCMD) == true)
+            {
+                File.Delete(pathCMD);
+            }
+            StreamWriter sw = new StreamWriter(path);
+            StreamWriter swCMD = new StreamWriter(pathCMD);
+            List<string> listCAN8 = new List<string>();
+            List<string> listCAN16 = new List<string>();
+            List<string> listCAN32 = new List<string>();
+            int count8 = 0;
+            int count16 = 0;
+            int count32 = 0;
+            var MaxCAN8Values = Convert.ToInt32(MyIni.ReadINI("InterraCAN", "MaxCAN8Values")); int CAN8ValuesCount = 0;
+            var MaxCAN16Values = Convert.ToInt32(MyIni.ReadINI("InterraCAN", "MaxCAN16Values")); int CAN16ValuesCount = 0;
+            var MaxCAN32Values = Convert.ToInt32(MyIni.ReadINI("InterraCAN", "MaxCAN32Values")); int CAN32ValuesCount = 0;
+            for (int i = 0; i < _dictForCommitsPMR.Keys.Count; i++)
+            {
+
+                //var key = _dictForCommitsPMR.Take(i).Select(d => d.Key).First();
+                string key = _dictForCommitsPMR.ElementAt(i).Key;
+                _dictForCommitsPMR[key] = _dictForCommitsPMR[key].Distinct().ToList();
+                if (_dictForCommitsPMR[key].Count != 0)
                 {
+
                     for (int j = 0; j < _dictForCommitsPMR[key].Count; j++)
                     {
-                        sw.WriteLine(key + " " + _dictForCommitsPMR[key][j]);
-
+                        if (CheckBox_Filter_PGN.IsChecked == true)
+                        {
+                            sw.WriteLine(key.Remove(4) + " " + _dictForCommitsPMR[key][j]);
+                        }
+                        else
+                        {
+                            sw.WriteLine(key + " " + _dictForCommitsPMR[key][j]);
+                        }
                         int firstIndex = _dictForCommitsPMR[key][j].IndexOf(";");
                         string chars = _dictForCommitsPMR[key][j].Remove(firstIndex);
                         chars = string.Concat(chars.Where(Char.IsDigit));
                         int CANbit;
                         if (chars.Length >= 3)
                         {
-                            chars = chars.Substring(0, chars.Length-2);
+                            chars = chars.Substring(0, chars.Length - 2);
                         }
                         if (chars.Length == 2)
                         {
                             int minByte = Convert.ToInt32(chars.Substring(0, 1));
                             int maxByte = Convert.ToInt32(chars.Substring(1, 1));
                             CANbit = (maxByte - minByte + 1) * 8;
-                            sw.WriteLine("CAN" + Convert.ToString(CANbit)+"BITR"+ Convert.ToString(j) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 2), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                            if (CANbit < 24 && CAN16ValuesCount < MaxCAN16Values)
+                            {
+                                if (CheckBox_Filter_PGN.IsChecked == true)
+                                {
+                                    if (listCAN16.Contains(key.Remove(4)))
+                                    {
+                                        sw.WriteLine("CAN" + "16" + "BITR" + Convert.ToString(listCAN16.IndexOf(key.Remove(4))) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                        swCMD.WriteLine("CAN" + "16" + "BITR" + Convert.ToString(listCAN16.IndexOf(key.Remove(4))) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+
+                                    }
+                                    else
+                                    {
+                                        sw.WriteLine("CAN" + "16" + "BITR" + Convert.ToString(count16) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                        swCMD.WriteLine("CAN" + "16" + "BITR" + Convert.ToString(count16) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                        count16++;
+                                        listCAN16.Add(key.Remove(4));
+                                    }
+
+                                }
+                                else
+                                {
+                                    sw.WriteLine("CAN" + "16" + "BITR" + Convert.ToString(count16) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 2), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                    swCMD.WriteLine("CAN" + "16" + "BITR" + Convert.ToString(count16) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 2), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                    count16++;
+                                }
+                                CAN16ValuesCount++;
+                            }
+                            else if (CANbit > 24 && CAN32ValuesCount < MaxCAN32Values)
+                            {
+                                if (CheckBox_Filter_PGN.IsChecked == true)
+                                {
+                                    if (listCAN32.Contains(key.Remove(4)))
+                                    {
+                                        sw.WriteLine("CAN" + "32" + "BITR" + Convert.ToString(listCAN32.IndexOf(key.Remove(4))) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                        swCMD.WriteLine("CAN" + "32" + "BITR" + Convert.ToString(listCAN32.IndexOf(key.Remove(4))) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+
+                                    }
+                                    else
+                                    {
+                                        sw.WriteLine("CAN" + "32" + "BITR" + Convert.ToString(count32) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                        swCMD.WriteLine("CAN" + "32" + "BITR" + Convert.ToString(count32) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                        count32++;
+                                        listCAN32.Add(key.Remove(4));
+                                    }
+
+                                }
+                                else
+                                {
+                                    sw.WriteLine("CAN" + "32" + "BITR" + Convert.ToString(count32) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 2), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                    swCMD.WriteLine("CAN" + "32" + "BITR" + Convert.ToString(count32) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 2), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                    count32++;
+                                }
+                                CAN32ValuesCount++;
+                            }
                         }
-                        else if (chars.Length == 1)
+                        else if (chars.Length == 1 && CAN8ValuesCount < MaxCAN8Values)
                         {
-                            CANbit = Convert.ToInt32(chars) * 8;
-                            sw.WriteLine("CAN" + Convert.ToString(CANbit) + "BITR" + Convert.ToString(j) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 2), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                            //CANbit = Convert.ToInt32(chars.Length) * 8;
+                            if (CheckBox_Filter_PGN.IsChecked == true)
+                            {
+                                if (listCAN8.Contains(key.Remove(4)))
+                                {
+                                    sw.WriteLine("CAN" + "8" + "BITR" + Convert.ToString(listCAN8.IndexOf(key.Remove(4))) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                    swCMD.WriteLine("CAN" + "8" + "BITR" + Convert.ToString(listCAN8.IndexOf(key.Remove(4))) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                }
+                                else
+                                {
+                                    sw.WriteLine("CAN" + "8" + "BITR" + Convert.ToString(count8) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                    swCMD.WriteLine("CAN" + "8" + "BITR" + Convert.ToString(count8) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                    count8++;
+                                    listCAN8.Add(key.Remove(4));
+                                }
+
+                            }
+                            else
+                            {
+                                sw.WriteLine("CAN" + "8" + "BITR" + Convert.ToString(count8) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 2), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                swCMD.WriteLine("CAN" + "8" + "BITR" + Convert.ToString(count8) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 2), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                count8++;
+                            }
+                            CAN8ValuesCount++;
                         }
                         sw.WriteLine();
                         //lastIndex = message.IndexOf("\r\n", firstIndex);
@@ -2669,9 +2926,10 @@ namespace InterraCAN
                     sw.WriteLine();
                     sw.WriteLine();
                 }
-                    //string IdAdress = _dictForCommitsPMR.Keys[i];
-                }
-                sw.Close();
+                //string IdAdress = _dictForCommitsPMR.Keys[i];
+            }
+            sw.Close();
+            swCMD.Close();
             //}
         }
 
@@ -2726,6 +2984,6 @@ namespace InterraCAN
         //}
 
     }
-    
+
 }
 
