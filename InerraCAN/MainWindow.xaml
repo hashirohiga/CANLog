@@ -1,4 +1,5 @@
 ﻿<Window
+        x:Name="WindowSettings"
         x:Class="InterraCAN.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -8,8 +9,9 @@
         xmlns:main="clr-namespace:InterraCAN"
         mc:Ignorable="d"
         Title="InterraCAN" Height="450" Width="1000"
-        WindowStartupLocation="CenterScreen"
-        FontFamily="Cascadia Code">
+        FontFamily="Cascadia Code"
+        Closed="WindowSettings_Closed"
+        >
     <Grid>
 
         <TabControl>
@@ -29,6 +31,7 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="30"/>
                             <RowDefinition Height="*"/>
+                            <RowDefinition Height="30"/>
                         </Grid.RowDefinitions>
                         <StackPanel
                             Orientation="Horizontal">
@@ -53,6 +56,10 @@
                         IsReadOnly="True"
                         HorizontalContentAlignment="Left"
                         x:Name="TB_List" FontFamily="Cascadia Code"/>
+                        <Label
+                        VerticalAlignment="Bottom"
+                        Grid.Row="2"
+                        Name="Label_ProgressBar_Status"/>
                     </Grid>
                     <StackPanel
                         HorizontalAlignment="Left"
@@ -77,7 +84,8 @@
                             Width="120"
                             Height="25"
                             Margin="5"
-                            Content="CANNY"/>
+                            Content="CANNY"
+                            IsEnabled="False"/>
                         <Button
                             Width="120"
                             Height="25"
@@ -94,12 +102,14 @@
                             Width="120"
                             Height="25"
                             Margin="5"
-                            Content="Galileo"/>
+                            Content="Galileo"
+                            IsEnabled="False"/>
                         <Button
                             Width="120"
                             Height="25"
                             Margin="5"
-                            Content="Galileo+"/>
+                            Content="Galileo+"
+                            IsEnabled="False"/>
                         <Button
                             x:Name="Btn_PRN"
                             Width="120"
@@ -132,15 +142,12 @@
 
                     </StackPanel>
                     <ProgressBar
-                        
+                        Visibility="Hidden"
                         x:Name="PB_Load"
                         Grid.Row="1"
                         Minimum="0" Maximum="115"
                         />
-                    <Label
-                        Grid.Column="1"
-                        Grid.Row="1"
-                        Name="Label_ProgressBar_Status"/>
+
                 </Grid>
             </TabItem>
             <TabItem
@@ -175,7 +182,6 @@
                                 
                                 Name="LabelOneByte"/>
                             <ListBox
-                                
                                 Grid.Row="2"
                                 x:Name="LB_Uniq"
                                 VerticalContentAlignment="Bottom"
@@ -184,7 +190,7 @@
                                 ScrollViewer.CanContentScroll="True"
                                 ScrollBar.Scroll="LB_Uniq_Scroll"
                                 Mouse.PreviewMouseWheel="LB_Uniq_PreviewMouseWheel"
-                                PreviewMouseLeftButtonDown="LB_Uniq_PreviewMouseLeftButtonDown">
+                                PreviewMouseLeftButtonDown="LB_Uniq_PreviewMouseLeftButtonDown" FontWeight="Bold">
                                 <ListBox.ContextMenu>
                                     <ContextMenu>
                                         <MenuItem Header="Пометить как интересный" Click="MenuItemGreen_Click"/>
@@ -438,7 +444,9 @@
                                 Content="Импорт"
                                 Width="100"
                                 Margin="3"
-                                Click="BtnReadFile_Click"/>
+                                Name="BtnReadFile"
+                                Click="BtnReadFile_Click"
+                                IsEnabled="False"/>
                         </StackPanel>
                         <Label
                                 Width="150"

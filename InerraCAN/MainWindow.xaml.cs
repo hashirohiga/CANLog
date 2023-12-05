@@ -42,6 +42,7 @@ using System.Reflection;
 using InerraCAN;
 using System.Collections;
 using System.Net;
+using InerraCAN.Properties;
 
 namespace InterraCAN
 {
@@ -55,9 +56,19 @@ namespace InterraCAN
 
         public MainWindow()
         {
+
             InitializeComponent();
             this.Show();
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            var MyIni = new IniFiles("Settings.ini");
+            //WindowSettings.stat
+            WindowSettings.Height = Convert.ToDouble(MyIni.ReadINI("Window", "Height"));
+            WindowSettings.Width = Convert.ToDouble(MyIni.ReadINI("Window", "Width"));
+            WindowSettings.Top = Convert.ToDouble(MyIni.ReadINI("Window", "Top"));
+            WindowSettings.Left = Convert.ToDouble(MyIni.ReadINI("Window", "Left"));
+
+            //WindowSettings.WindowState = TryParse(MyIni.ReadINI("Window", "WindowState"));
+            //WindowSettings.Visibility = Visibility.Visible;
         }
 
         //Dictionary<string, Dictionary<int, List<string>>> messages = new Dictionary<string, Dictionary<int, List<string>>>();
@@ -98,7 +109,7 @@ namespace InterraCAN
         OpenFileDialog _currentFile = new OpenFileDialog();
         string _selectedID;
         string _files;
-
+        int _speedCAN;
         public PlotModel ModelByte0 { get; private set; }
         public PlotModel ModelByte01LE { get; private set; }
         public PlotModel ModelByte1 { get; private set; }
@@ -173,10 +184,12 @@ namespace InterraCAN
                 words = _files.Split('\n').ToList();
                 var oneWord = words[0];
                 words.RemoveRange(0, 2);
-                Label_Speed_CAN.Content = string.Concat(oneWord.Where(Char.IsDigit));
+                _speedCAN = Convert.ToInt32(string.Concat(oneWord.Where(Char.IsDigit)));
+                //Label_Speed_CAN.Content = string.Concat(oneWord.Where(Char.IsDigit));
+                Label_Speed_CAN.Content = Convert.ToString(_speedCAN);
                 List<string> dataSheets = new List<string>();
                 _dataTime.Clear();
-
+                PB_Load.Visibility = Visibility.Visible;
                 PB_Load.Value = PB_Load.Value + 20;
                 DoEvents();
 
@@ -389,6 +402,7 @@ namespace InterraCAN
                 DoEvents();
                 Thread.Sleep(100);
                 Label_ProgressBar_Status.Content = "Обработка выполнена.";
+                PB_Load.Visibility = Visibility.Hidden;
                 _messages = messages;
                 _uniqId = uniqId;
                 uniqId = null;
@@ -403,7 +417,7 @@ namespace InterraCAN
                 Btn_PRM_CLick(sender, e);
             }
 
-            else MessageBox.Show("Файл не был выбран.");
+            //else MessageBox.Show("Файл не был выбран.");
 
         }
 
@@ -1756,6 +1770,8 @@ namespace InterraCAN
                 }
                 List<string> strings1 = new List<string>();
             }
+            BtnReadFile_Click(sender, e);
+            BtnReadFile.IsEnabled = true;
         }
 
 
@@ -1948,6 +1964,8 @@ namespace InterraCAN
                 LB_Uniq = _markedUniqId;
             }
             ListBoxItem lbi = (ListBoxItem)_markedUniqId.ItemContainerGenerator.ContainerFromIndex(index);
+            //lbi.Background = Brushes.Green;
+            //lbi.Foreground = Brushes.White;
             lbi.Foreground = Brushes.Green;
             _greenIndex.Add(index);
 
@@ -2064,17 +2082,17 @@ namespace InterraCAN
 
         private void BtnSaveToFile_Click(object sender, RoutedEventArgs e)
         {
-            string logFileName = _currentFile.SafeFileName;
-            logFileName = logFileName.Remove(logFileName.Length - 4);
-            string textFileName = logFileName + "_export.txt";
-            string docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            //string logFileName = _currentFile.SafeFileName;
+            //logFileName = logFileName.Remove(logFileName.Length - 4);
+            //string textFileName = logFileName + "_commits.txt";
+            string docPath = _currentFile.FileName + "_commits.txt";
 
             List<string> textLines = new List<string>();
             try
             {
-                if (File.Exists(docPath + "\\" + textFileName) == true)
+                if (File.Exists(docPath) == true)
                 {
-                    File.Delete(docPath + "\\" + textFileName);
+                    File.Delete(docPath);
                 }
 
                 for (int i = 0; i < LB_Uniq.Items.Count; i++) // перебираем данные    
@@ -2086,7 +2104,7 @@ namespace InterraCAN
                         LB_Uniq.ScrollIntoView(LB_Uniq.Items[i]);
                         lbi = (ListBoxItem)_markedUniqId.ItemContainerGenerator.ContainerFromIndex(i);
                     }
-                    if (lbi.Foreground == Brushes.Green || lbi.Foreground == Brushes.Red || lbi.Visibility == Visibility.Collapsed)
+                    if (lbi.Foreground == Brushes.Green || lbi.Foreground == Brushes.Red || lbi.Visibility == Visibility.Collapsed || _commits.ContainsKey(i))
                     {
                         if (_commits.ContainsKey(i) == true)
                         {
@@ -2100,10 +2118,12 @@ namespace InterraCAN
 
 
                 }
-                File.AppendAllLines(System.IO.Path.Combine(docPath, textFileName), textLines);
+                //File.AppendAllLines(System.IO.Path.Combine(docPath, textFileName), textLines);
+                File.AppendAllLines(System.IO.Path.Combine(docPath), textLines);
                 if (textLines.Count == 0)
                 {
-                    File.Delete(docPath + "\\" + textFileName);
+                    //File.Delete(docPath + "\\" + textFileName);
+                    File.Delete(docPath);
                     MessageBox.Show("Нечего сохранять.");
                 }
 
@@ -2113,17 +2133,25 @@ namespace InterraCAN
 
                 throw;
             }
+            LB_Uniq.ScrollIntoView(LB_Uniq.Items[0]);
         }
 
         private void BtnReadFile_Click(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog ofd = new OpenFileDialog();
-            ofd.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
-            ofd.ShowDialog();
-            string filename = ofd.FileName;
-            if (ofd.FileName != "")
+            //StreamWriter sw = new StreamWriter(path);
+            string files;
+            try
             {
-                var files = System.IO.File.ReadAllText(filename);
+                files = System.IO.File.ReadAllText(_currentFile.FileName + "_commits.txt");
+            }
+            catch (Exception)
+            {
+
+                return;
+            }
+
+            if (files != null && files != "")
+            {
                 List<string> words = new List<string>();
                 words = files.Split('\n').ToList();
                 words.RemoveAt(words.Count - 1);
@@ -2180,9 +2208,79 @@ namespace InterraCAN
                     //ListBoxItem lbi = (ListBoxItem)LB_Uniq.ItemContainerGenerator.ContainerFromIndex(i);
 
                 }
-
             }
+            else
+            {
+                if (BtnReadFile.IsEnabled == true)
+                {
+                    OpenFileDialog ofd = new OpenFileDialog();
+                    ofd.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
+                    ofd.ShowDialog();
+                    string filename = ofd.FileName;
+                    if (ofd.FileName != "")
+                    {
+                        _commits.Clear();
+                        files = System.IO.File.ReadAllText(filename);
+                        List<string> words = new List<string>();
+                        words = files.Split('\n').ToList();
+                        words.RemoveAt(words.Count - 1);
+                        for (int i = 0; i < words.Count; i++)
+                        {
 
+                            int index = words[i].IndexOf("\r");
+                            words[i] = words[i].Remove(index);
+
+                        }
+                        for (int i = 0; i < LB_Uniq.Items.Count; i++)
+                        {
+                            if (words.Count != 0)
+                            {
+                                int index = words[0].IndexOf("|");
+                                string word = words[0].Remove(index);
+                                if (LB_Uniq.Items[i].ToString() == word)
+                                {
+                                    List<string> strings = new List<string>();
+                                    strings = words[0].Split("|").ToList();
+                                    ListBoxItem lbi = (ListBoxItem)LB_Uniq.ItemContainerGenerator.ContainerFromIndex(i);
+                                    if (lbi == null)
+                                    {
+                                        LB_Uniq.UpdateLayout();
+                                        LB_Uniq.ScrollIntoView(LB_Uniq.Items[i]);
+                                        lbi = (ListBoxItem)LB_Uniq.ItemContainerGenerator.ContainerFromIndex(i);
+                                    }
+                                    if (strings[1] == "#FF008000")
+                                    {
+                                        lbi.Foreground = Brushes.Green;
+                                    }
+                                    else if (strings[1] == "#FFFF0000")
+                                    {
+                                        lbi.Foreground = Brushes.Red;
+                                    }
+                                    if (strings[2] == "Visible")
+                                    {
+                                        lbi.Visibility = Visibility.Visible;
+                                    }
+                                    else if (strings[2] == "Collapsed")
+                                    {
+                                        lbi.Visibility = Visibility.Collapsed;
+                                    }
+                                    if (strings.Count == 4)
+                                    {
+                                        _commits.Add(i, strings[3]);
+                                    }
+                                    words.RemoveAt(0);
+
+                                    i = 0;
+                                }
+                            }
+                            //int index = LB_Uniq.Items.
+                            //ListBoxItem lbi = (ListBoxItem)LB_Uniq.ItemContainerGenerator.ContainerFromIndex(i);
+
+                        }
+
+                    }
+                }
+            }
         }
 
         private void LB_Uniq_Scroll(object sender, System.Windows.Controls.Primitives.ScrollEventArgs e)
@@ -2247,7 +2345,8 @@ namespace InterraCAN
         private void MenuItemEditCommit_Click(object sender, RoutedEventArgs e)
         {
             myPopup.IsOpen = true;
-            //TB_Commit.Text = _commits[LB_Uniq.SelectedIndex];
+            TB_Commit.Clear();
+            TB_Commit.Text = _commits[LB_Uniq.SelectedIndex];
             //string userCommit = Microsoft.VisualBasic.Interaction.InputBox("Комментарий", "", _commits[LB_Uniq.SelectedIndex]);
             //_commits.Remove(LB_Uniq.SelectedIndex);
             //_commits.Add(LB_Uniq.SelectedIndex, userCommit);
@@ -2256,6 +2355,7 @@ namespace InterraCAN
         private void MenuItemAddCommit_Click(object sender, RoutedEventArgs e)
         {
             myPopup.IsOpen = true;
+            TB_Commit.Clear();
             //string userCommit = Microsoft.VisualBasic.Interaction.InputBox("Комментарий","");
 
             //_commits.Add(LB_Uniq.SelectedIndex, userCommit);
@@ -2343,6 +2443,10 @@ namespace InterraCAN
             _dictForCommitsPMR.Clear();
             var MyIni = new IniFiles("Settings.ini");
             var ReadFile = MyIni.ReadINI("InterraCAN", "ReadFile");
+            //if (ReadFile == "")
+            //{
+
+            //}
             //var readCFG = System.IO.File.ReadAllText("PRM.cfg");
 
             //OpenFileDialog ofd = new OpenFileDialog();
@@ -2356,7 +2460,16 @@ namespace InterraCAN
             //string files = System.IO.File.ReadAllText($"..\\prm_xxxxxxxx1.txt");
 
             //string files = System.IO.File.ReadAllText(readCFG + ".txt");
-            string files = System.IO.File.ReadAllText(ReadFile);
+            string files;
+            try
+            {
+                files = System.IO.File.ReadAllText(ReadFile);
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Файл " + ReadFile + " не был найден.");
+                return;
+            }
             //string files = System.IO.File.ReadAllText("C:\\Users\\technic\\Downloads\\prm_xxxxxxxx1.txt");
             //\r\n\r\n\r\n
             List<string> words = files.Split("Адрес").ToList();
@@ -2416,10 +2529,13 @@ namespace InterraCAN
                         //PRM_Commits_List.Add(words[i]);
                         if (_dictForCommitsPMR.ContainsKey(IdAdress))
                         {
-                            for (int j = 0; j < PRM_bytes.Count; j++)
+                            while (_dictForCommitsPMR.ContainsKey(IdAdress))
                             {
-                                _dictForCommitsPMR[IdAdress].Add(PRM_bytes[j]);
+                                IdAdress = IdAdress + "|";
                             }
+                            _dictForCommitsPMR.Add(IdAdress, PRM_bytes);
+                            //_dictForCommitsPMR[IdAdress].Add(PRM_bytes[j]);
+
                             //_dictForCommitsPMR[IdAdress].Add(PRM_bytes);
                         }
                         else
@@ -2494,6 +2610,9 @@ namespace InterraCAN
                                     //}
                                     //else
                                     //{
+                                    int indexAdress = _dictForCommitsPMR.ElementAt(0).Key.Length;
+                                    string IdPath = IdAdress.Remove(0, indexAdress);
+                                    IdAdress = IdAdress.Remove(indexAdress);
                                     for (int c = 0; c < _messages[IdAdress].Count; c++)
                                     {
                                         string strokeBytes = string.Empty;
@@ -2514,14 +2633,32 @@ namespace InterraCAN
                                         {
                                             if (distinct[0] == "0000")
                                             {
-                                                _dictForCommitsPMR[IdAdress].RemoveAt(j);
-                                                j--;
+                                                if (IdPath != "")
+                                                {
+                                                    IdAdress = IdAdress + IdPath;
+                                                    _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                                    j--;
+                                                }
+                                                else
+                                                {
+                                                    _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                                    j--;
+                                                }
                                             }
                                         }
                                         else
                                         {
-                                            _dictForCommitsPMR[IdAdress].RemoveAt(j);
-                                            j--;
+                                            if (IdPath != "")
+                                            {
+                                                IdAdress = IdAdress + IdPath;
+                                                _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                                j--;
+                                            }
+                                            else
+                                            {
+                                                _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                                j--;
+                                            }
                                         }
                                     }
 
@@ -2564,6 +2701,9 @@ namespace InterraCAN
                                     listForDict[1] = listForDict[1].Remove(0, listForDict[1].IndexOf(",") + 1);
                                     _dictForCommitsPMR[IdAdress][j] = listForDict[1] + ";" + listForDict[0] + ";" + listForDict[2] + ";" + listForDict[3] + ";";
                                     int oneByte = Convert.ToInt32(stringByte);
+                                    int indexAdress = _dictForCommitsPMR.ElementAt(0).Key.Length;
+                                    string IdPath = IdAdress.Remove(0, indexAdress);
+                                    IdAdress = IdAdress.Remove(indexAdress);
                                     List<string> massByte = new List<string>();
                                     //if (CheckBox_Filter_PGN.IsChecked == true)
                                     //{
@@ -2590,14 +2730,32 @@ namespace InterraCAN
                                         {
                                             if (distinct[0] == "00")
                                             {
-                                                _dictForCommitsPMR[IdAdress].RemoveAt(j);
-                                                j--;
+                                                if (IdPath != "")
+                                                {
+                                                    IdAdress = IdAdress + IdPath;
+                                                    _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                                    j--;
+                                                }
+                                                else
+                                                {
+                                                    _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                                    j--;
+                                                }
                                             }
                                         }
                                         else
                                         {
-                                            _dictForCommitsPMR[IdAdress].RemoveAt(j);
-                                            j--;
+                                            if (IdPath != "")
+                                            {
+                                                IdAdress = IdAdress + IdPath;
+                                                _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                                j--;
+                                            }
+                                            else
+                                            {
+                                                _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                                j--;
+                                            }
                                         }
 
 
@@ -2620,7 +2778,9 @@ namespace InterraCAN
                                     int minBit = Convert.ToInt32(stringBit.Remove(1)) - 1;
                                     int maxBit = Convert.ToInt32(stringBit.Remove(0, 1)) - 1;
                                     int oneByte = Convert.ToInt32(stringByte) - 1;
-
+                                    int indexAdress = _dictForCommitsPMR.ElementAt(0).Key.Length;
+                                    string IdPath = IdAdress.Remove(0, indexAdress);
+                                    IdAdress = IdAdress.Remove(indexAdress);
                                     List<string> listBits = new List<string>();
                                     //BitArray bits = new BitArray(_messages[IdAdress][0][oneByte]);
                                     //if (CheckBox_Filter_PGN.IsChecked == true)
@@ -2675,14 +2835,32 @@ namespace InterraCAN
                                             }
                                             if (distinct[0] == zeroBits)
                                             {
-                                                _dictForCommitsPMR[IdAdress].RemoveAt(j);
-                                                j--;
+                                                if (IdPath != "")
+                                                {
+                                                    IdAdress = IdAdress + IdPath;
+                                                    _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                                    j--;
+                                                }
+                                                else
+                                                {
+                                                    _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                                    j--;
+                                                }
                                             }
                                         }
                                         else
                                         {
-                                            _dictForCommitsPMR[IdAdress].RemoveAt(j);
-                                            j--;
+                                            if (IdPath != "")
+                                            {
+                                                IdAdress = IdAdress + IdPath;
+                                                _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                                j--;
+                                            }
+                                            else
+                                            {
+                                                _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                                j--;
+                                            }
                                         }
 
 
@@ -2718,24 +2896,42 @@ namespace InterraCAN
                 int dictcount = _dictForCommitsPMR.Keys.Count;
                 for (int i = 0; i < _dictForCommitsPMR.Keys.Count; i++)
                 {
-
                     var key = _dictForCommitsPMR.ElementAt(i).Key;
+
+                    int indexAdress = _dictForCommitsPMR.ElementAt(0).Key.Length;
+                    string IdPath = key.Remove(0, indexAdress);
+                    key = key.Remove(indexAdress);
+
                     string regex = Regex.Replace(key, @"0x..", "");
+                    if (key.Length > _dictForCommitsPMR.ElementAt(0).Key.Length)
+                    {
+                        int countPath = key.Length - _dictForCommitsPMR.ElementAt(0).Key.Length;
+                        string regexPath = string.Empty;
+                        for (int x = 0; x < countPath; x++)
+                        {
+                            regexPath = regexPath + ".";
+                        }
+                        key = Regex.Replace(regex, @".." + regexPath + "\b", "");
+                    }
                     key = Regex.Replace(regex, @"..\b", "");
                     List<string> dictList = _dictForCommitsPMR[_dictForCommitsPMR.ElementAt(i).Key];
-                    if (dictPGN.ContainsKey(key))
-                    {
-                        //for (int j = 0; j < dictList.Count; j++)
-                        //{
-                        //    dictPGN[key].Add(dictList[j]);
-                        //}
-                        dictPGN.Add(key + " (1)", dictList);
-                    }
-                    else
-                    {
-                        dictPGN.Add(key + _dictForCommitsPMR.ElementAt(i).Key, dictList);
-                        //_dictForCommitsPMR.Remove(_dictForCommitsPMR.ElementAt(i).Key);
-                    }
+                    //if (IdPath != "")
+                    //{
+                    //    key = key + IdPath;
+                    //}
+                    //if (dictPGN.ContainsKey(key))
+                    //{
+                    //    //for (int j = 0; j < dictList.Count; j++)
+                    //    //{
+                    //    //    dictPGN[key].Add(dictList[j]);
+                    //    //}
+                    //    dictPGN.Add(key + "|", dictList);
+                    //}
+                    //else
+                    //{
+                    dictPGN.Add(key + _dictForCommitsPMR.ElementAt(i).Key, dictList);
+                    //_dictForCommitsPMR.Remove(_dictForCommitsPMR.ElementAt(i).Key);
+                    //}
 
                     //if (_dictForCommitsPMR.ContainsKey(key))
                     //{
@@ -2781,6 +2977,7 @@ namespace InterraCAN
             //string path = "C:\\Users\\technic\\Downloads\\" + _currentFile.SafeFileName + "_J1939.txt";
             string path = _currentFile.FileName + "_J1939.txt";
             string pathCMD = _currentFile.FileName + "_cmd.txt";
+            string pathObj = _currentFile.FileName + "_obj.txt";
             if (File.Exists(path) == true)
             {
                 File.Delete(path);
@@ -2789,38 +2986,149 @@ namespace InterraCAN
             {
                 File.Delete(pathCMD);
             }
+            if (File.Exists(pathObj) == true)
+            {
+                File.Delete(pathObj);
+            }
+            if (_dictForCommitsPMR.Count == 0)
+            {
+                return;
+            }
+            int check = 0;
+            for (int i = 0; i < _dictForCommitsPMR.Keys.Count; i++)
+            {
+                if (_dictForCommitsPMR[_dictForCommitsPMR.ElementAt(i).Key].Count != 0)
+                {
+                    check++;
+                }
+                if (check < 0)
+                {
+                    break;
+                }
+            }
             StreamWriter sw = new StreamWriter(path);
             StreamWriter swCMD = new StreamWriter(pathCMD);
+            StreamWriter obj = new StreamWriter(pathObj);
             List<string> listCAN8 = new List<string>();
             List<string> listCAN16 = new List<string>();
             List<string> listCAN32 = new List<string>();
+            List<string> listCommands = new List<string>();
+            List<string> listTags = new List<string>();
             int count8 = 0;
             int count16 = 0;
             int count32 = 0;
             var MaxCAN8Values = Convert.ToInt32(MyIni.ReadINI("InterraCAN", "MaxCAN8Values")); int CAN8ValuesCount = 0;
             var MaxCAN16Values = Convert.ToInt32(MyIni.ReadINI("InterraCAN", "MaxCAN16Values")); int CAN16ValuesCount = 0;
             var MaxCAN32Values = Convert.ToInt32(MyIni.ReadINI("InterraCAN", "MaxCAN32Values")); int CAN32ValuesCount = 0;
+            //CANREGIME 3,250000,2000,0
+            //ACTIVECAN 0
+            swCMD.WriteLine("CANREGIME 3," + Convert.ToString(_speedCAN * 1000) + ",2000,0");
+            swCMD.WriteLine("ACTIVECAN 0");
+            int count0 = 0;
+            int count1 = 0;
+
             for (int i = 0; i < _dictForCommitsPMR.Keys.Count; i++)
             {
-
+                int indexAdress = _dictForCommitsPMR.ElementAt(0).Key.Length;
                 //var key = _dictForCommitsPMR.Take(i).Select(d => d.Key).First();
                 string key = _dictForCommitsPMR.ElementAt(i).Key;
+                //string IdPath = key.Remove(0, indexAdress);
+                //key = key.Remove(indexAdress);
                 _dictForCommitsPMR[key] = _dictForCommitsPMR[key].Distinct().ToList();
                 if (_dictForCommitsPMR[key].Count != 0)
                 {
-
+                    
                     for (int j = 0; j < _dictForCommitsPMR[key].Count; j++)
                     {
+                        string c;
+                        string offset;
+                        string f = "";
+
+                        int firstIndex = _dictForCommitsPMR[key][j].IndexOf(";");
+                        if (firstIndex == -1)
+                        {
+                            _dictForCommitsPMR[key].RemoveAt(j);
+                            break;
+                        }
+                        string IdPath = key.Remove(0, indexAdress);
+                        key = key.Remove(indexAdress);
                         if (CheckBox_Filter_PGN.IsChecked == true)
                         {
-                            sw.WriteLine(key.Remove(4) + " " + _dictForCommitsPMR[key][j]);
+                            if (IdPath != "")
+                            {
+                                sw.WriteLine(key.Remove(4) + " " + _dictForCommitsPMR[key + IdPath][j]);
+                            }
+                            else
+                            {
+                                sw.WriteLine(key.Remove(4) + " " + _dictForCommitsPMR[key][j]);
+                            }
+
                         }
                         else
                         {
-                            sw.WriteLine(key + " " + _dictForCommitsPMR[key][j]);
+                            if (IdPath != "")
+                            {
+                                sw.WriteLine(key + " " + _dictForCommitsPMR[key + IdPath][j]);
+                            }
+                            else
+                            {
+                                sw.WriteLine(key + " " + _dictForCommitsPMR[key][j]);
+                            }
                         }
-                        int firstIndex = _dictForCommitsPMR[key][j].IndexOf(";");
-                        string chars = _dictForCommitsPMR[key][j].Remove(firstIndex);
+                        string chars;
+                        if (IdPath != "")
+                        {
+                            chars = _dictForCommitsPMR[key + IdPath][j].Remove(firstIndex);
+                        }
+                        else
+                        {
+                            chars = _dictForCommitsPMR[key][j].Remove(firstIndex);
+                        }
+                        //берем коэффициент и смещение
+                        var splitStroke = _dictForCommitsPMR[key][j].Split(";");
+                        c = splitStroke[2].Remove(splitStroke[2].IndexOf(","));
+                        var indexC = c.IndexOf(" ");
+                        if (indexC == -1)
+                        {
+                            indexC = c.IndexOf("/");
+                        }
+                        c = c.Remove(indexC);
+                        offset = splitStroke[2].Remove(0, splitStroke[2].IndexOf(",") + 1);
+                        offset = offset.Remove(0, 1);
+                        offset = offset.Remove(offset.IndexOf(" "));
+                        if (c != "1")
+                        {
+                            if (offset != "0")
+                            {
+                                if (offset.Contains("-"))
+                                {
+                                    f = "*const" + c + offset.Remove(1) + "const" + offset.Remove(0, 1);
+                                }
+                                else
+                                {
+                                    f = "*const" + c + "+" + "const" + offset;
+                                }
+                            }
+                            else
+                            {
+                                f = "*const" + c;
+                            }
+                        }
+                        else
+                        {
+                            if (offset != "0")
+                            {
+                                if (offset.Contains("-"))
+                                {
+                                    f = offset.Remove(1) + "const" + offset.Remove(0, 1);
+                                }
+                                else
+                                {
+                                    f = "+" + "const" + offset;
+                                }
+                            }
+                        }
+
                         chars = string.Concat(chars.Where(Char.IsDigit));
                         int CANbit;
                         if (chars.Length >= 3)
@@ -2834,83 +3142,435 @@ namespace InterraCAN
                             CANbit = (maxByte - minByte + 1) * 8;
                             if (CANbit < 24 && CAN16ValuesCount < MaxCAN16Values)
                             {
+                                string CANCommand16;
                                 if (CheckBox_Filter_PGN.IsChecked == true)
                                 {
-                                    if (listCAN16.Contains(key.Remove(4)))
+                                    //if (listCAN16.Contains(key.Remove(4)))
+                                    //{
+                                    if (IdPath != "")
                                     {
-                                        sw.WriteLine("CAN" + "16" + "BITR" + Convert.ToString(listCAN16.IndexOf(key.Remove(4))) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
-                                        swCMD.WriteLine("CAN" + "16" + "BITR" + Convert.ToString(listCAN16.IndexOf(key.Remove(4))) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                        //var ReadFile = MyIni.ReadINI("InterraCAN", "ReadFile");
+
+                                        //CANCommand16 = "CAN" + "16" + "BITR" + Convert.ToString(listCAN16.IndexOf(key.Remove(4)));
+                                        CANCommand16 = "CAN" + "16" + "BITR" + Convert.ToString(count16);
+                                        sw.WriteLine(CANCommand16 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                        //swCMD.WriteLine(CANCommand16 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                        //sw.WriteLine("mainpackbit " + MyIni.ReadINI("CANCommands", CANCommand16) + ",1");
+
+                                        if (count16 < 5)
+                                        {
+                                            //sw.WriteLine("can_r" + Convert.ToString(count16 + 18) + " " + _dictForCommitsPMR[key + IdPath][j].Remove(0, _dictForCommitsPMR[key + IdPath][j].IndexOf(";") + 1));
+                                            obj.WriteLine("can_r" + Convert.ToString(count16 + 18) + f);
+                                        }
+                                        else if (count16 > 4 && count16 + 27 < 44)
+                                        {
+                                            //sw.WriteLine("can16bitr" + Convert.ToString(count16 + 27) + " " + _dictForCommitsPMR[key + IdPath][j].Remove(0, _dictForCommitsPMR[key + IdPath][j].IndexOf(";") + 1));
+                                            obj.WriteLine("can16bitr" + Convert.ToString(count16 + 27) + f);
+                                        }
+
+                                        count16++;
+                                        listTags.Add(CANCommand16 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                        listCommands.Add("mainpackbit " + MyIni.ReadINI("CANCommands", CANCommand16) + ",1");
 
                                     }
                                     else
                                     {
-                                        sw.WriteLine("CAN" + "16" + "BITR" + Convert.ToString(count16) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
-                                        swCMD.WriteLine("CAN" + "16" + "BITR" + Convert.ToString(count16) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                        CANCommand16 = "CAN" + "16" + "BITR" + Convert.ToString(count16);
+                                        sw.WriteLine(CANCommand16 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                        //swCMD.WriteLine(CANCommand16 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                        //sw.WriteLine("mainpackbit " + MyIni.ReadINI("CANCommands", CANCommand16) + ",1");
+                                        if (count16 < 5)
+                                        {
+                                            //sw.WriteLine("can_r" + Convert.ToString(count16 + 18) + " " + _dictForCommitsPMR[key][j].Remove(0, _dictForCommitsPMR[key][j].IndexOf(";") + 1));
+                                            obj.WriteLine("can_r" + Convert.ToString(count16 + 18) + f);
+                                        }
+                                        else if (count16 > 4 && count16 + 27 < 44)
+                                        {
+                                            //sw.WriteLine("can16bitr" + Convert.ToString(count16 + 27) + " " + _dictForCommitsPMR[key][j].Remove(0, _dictForCommitsPMR[key][j].IndexOf(";") + 1));
+                                            obj.WriteLine("can16bitr" + Convert.ToString(count16 + 27) + f);
+                                        }
                                         count16++;
-                                        listCAN16.Add(key.Remove(4));
+                                        listTags.Add(CANCommand16 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                        listCommands.Add("mainpackbit " + MyIni.ReadINI("CANCommands", CANCommand16) + ",1");
+
                                     }
+
+                                    //}
+                                    //else
+                                    //{
+                                    //    CANCommand16 = "CAN" + "16" + "BITR" + Convert.ToString(count16);
+                                    //    sw.WriteLine(CANCommand16 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                    //    swCMD.WriteLine(CANCommand16 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                    //    sw.WriteLine("mainpackbit " + MyIni.ReadINI("CANCommands", CANCommand16) + ",1");
+                                    //    count16++;
+                                    //    listCAN16.Add(key.Remove(4));
+                                    //}
 
                                 }
                                 else
                                 {
-                                    sw.WriteLine("CAN" + "16" + "BITR" + Convert.ToString(count16) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 2), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
-                                    swCMD.WriteLine("CAN" + "16" + "BITR" + Convert.ToString(count16) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 2), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                    CANCommand16 = "CAN" + "16" + "BITR" + Convert.ToString(count16);
+                                    sw.WriteLine(CANCommand16 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 2), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                    //swCMD.WriteLine(CANCommand16 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 2), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                    //sw.WriteLine("mainpackbit " + MyIni.ReadINI("CANCommands", CANCommand16) + ",1");
+                                    if (count16 < 5)
+                                    {
+                                        //sw.WriteLine("can_r" + Convert.ToString(count16 + 18) + " " + _dictForCommitsPMR[key][j].Remove(0, _dictForCommitsPMR[key][j].IndexOf(";") + 1));
+                                        obj.WriteLine("can_r" + Convert.ToString(count16 + 18) + f);
+                                    }
+                                    else if (count16 > 4 && count16 + 27 < 44)
+                                    {
+                                        //sw.WriteLine("can16bitr" + Convert.ToString(count16 + 27) + " " + _dictForCommitsPMR[key][j].Remove(0, _dictForCommitsPMR[key][j].IndexOf(";") + 1));
+                                        obj.WriteLine("can16bitr" + Convert.ToString(count16 + 27) + f);
+                                    }
                                     count16++;
+                                    listTags.Add(CANCommand16 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 2), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                    listCommands.Add("mainpackbit " + MyIni.ReadINI("CANCommands", CANCommand16) + ",1");
                                 }
                                 CAN16ValuesCount++;
                             }
                             else if (CANbit > 24 && CAN32ValuesCount < MaxCAN32Values)
                             {
+                                string CANCommand32;
                                 if (CheckBox_Filter_PGN.IsChecked == true)
                                 {
-                                    if (listCAN32.Contains(key.Remove(4)))
+                                    //if (listCAN32.Contains(key.Remove(4)))
+                                    //{
+                                    if (IdPath != "")
                                     {
-                                        sw.WriteLine("CAN" + "32" + "BITR" + Convert.ToString(listCAN32.IndexOf(key.Remove(4))) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
-                                        swCMD.WriteLine("CAN" + "32" + "BITR" + Convert.ToString(listCAN32.IndexOf(key.Remove(4))) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                        CANCommand32 = "CAN" + "32" + "BITR" + Convert.ToString(count32);
+                                        sw.WriteLine(CANCommand32 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                        //swCMD.WriteLine(CANCommand32 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                        //sw.WriteLine("mainpackbit " + MyIni.ReadINI("CANCommands", CANCommand32) + ",1");
+                                        if (count32 < 5)
+                                        {
+                                            //sw.WriteLine("can_r" + Convert.ToString(count32 + 23) + " " + _dictForCommitsPMR[key + IdPath][j].Remove(0, _dictForCommitsPMR[key + IdPath][j].IndexOf(";") + 1));
+                                            obj.WriteLine("can_r" + Convert.ToString(count32 + 23) + f);
+                                        }
+                                        else if (count32 > 4 && count32 + 91 < 106)
+                                        {
+                                            //sw.WriteLine("can32bitr" + Convert.ToString(count32 + 91) + " " + _dictForCommitsPMR[key + IdPath][j].Remove(0, _dictForCommitsPMR[key + IdPath][j].IndexOf(";") + 1));
+                                            obj.WriteLine("can32bitr" + Convert.ToString(count32 + 91) + f);
+                                        }
+                                        count32++;
+                                        listTags.Add(CANCommand32 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                        listCommands.Add("mainpackbit " + MyIni.ReadINI("CANCommands", CANCommand32) + ",1");
 
                                     }
                                     else
                                     {
-                                        sw.WriteLine("CAN" + "32" + "BITR" + Convert.ToString(count32) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
-                                        swCMD.WriteLine("CAN" + "32" + "BITR" + Convert.ToString(count32) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                        CANCommand32 = "CAN" + "32" + "BITR" + Convert.ToString(count32);
+                                        sw.WriteLine(CANCommand32 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                        //swCMD.WriteLine(CANCommand32 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                        //sw.WriteLine("mainpackbit " + MyIni.ReadINI("CANCommands", CANCommand32) + ",1");
+                                        if (count32 < 5)
+                                        {
+                                            //sw.WriteLine("can_r" + Convert.ToString(count32 + 23) + " " + _dictForCommitsPMR[key][j].Remove(0, _dictForCommitsPMR[key][j].IndexOf(";") + 1));
+                                            obj.WriteLine("can_r" + Convert.ToString(count32 + 23) + f);
+                                        }
+                                        else if (count32 > 4 && count32 + 91 < 106)
+                                        {
+                                            //sw.WriteLine("can32bitr" + Convert.ToString(count32 + 91) + " " + _dictForCommitsPMR[key][j].Remove(0, _dictForCommitsPMR[key][j].IndexOf(";") + 1));
+                                            obj.WriteLine("can32bitr" + Convert.ToString(count32 + 91) + f);
+                                        }
                                         count32++;
-                                        listCAN32.Add(key.Remove(4));
+                                        listTags.Add(CANCommand32 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                        listCommands.Add("mainpackbit " + MyIni.ReadINI("CANCommands", CANCommand32) + ",1");
+
                                     }
+
+                                    //}
+                                    //else
+                                    //{
+                                    //    CANCommand32 = "CAN" + "32" + "BITR" + Convert.ToString(count32);
+                                    //    sw.WriteLine(CANCommand32 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                    //    swCMD.WriteLine(CANCommand32 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                    //    sw.WriteLine("mainpackbit " + MyIni.ReadINI("CANCommands", CANCommand32) + ",1");
+                                    //    count32++;
+                                    //    listCAN32.Add(key.Remove(4));
+                                    //}
 
                                 }
                                 else
                                 {
-                                    sw.WriteLine("CAN" + "32" + "BITR" + Convert.ToString(count32) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 2), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
-                                    swCMD.WriteLine("CAN" + "32" + "BITR" + Convert.ToString(count32) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 2), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                    CANCommand32 = "CAN" + "32" + "BITR" + Convert.ToString(count32);
+                                    sw.WriteLine(CANCommand32 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 2), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                    //swCMD.WriteLine(CANCommand32 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 2), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                    //sw.WriteLine("mainpackbit " + MyIni.ReadINI("CANCommands", CANCommand32) + ",1");
+                                    if (count32 < 5)
+                                    {
+                                        //sw.WriteLine("can_r" + Convert.ToString(count32 + 23) + " " + _dictForCommitsPMR[key][j].Remove(0, _dictForCommitsPMR[key][j].IndexOf(";") + 1));
+                                        obj.WriteLine("can_r" + Convert.ToString(count32 + 23) + f);
+                                    }
+                                    else if (count32 > 4 && count32 + 91 < 106)
+                                    {
+                                        //sw.WriteLine("can32bitr" + Convert.ToString(count32 + 91) + " " + _dictForCommitsPMR[key][j].Remove(0, _dictForCommitsPMR[key][j].IndexOf(";") + 1));
+                                        obj.WriteLine("can32bitr" + Convert.ToString(count32 + 91) + f);
+                                    }
                                     count32++;
+                                    listTags.Add(CANCommand32 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 2), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                    listCommands.Add("mainpackbit " + MyIni.ReadINI("CANCommands", CANCommand32) + ",1");
                                 }
                                 CAN32ValuesCount++;
                             }
                         }
                         else if (chars.Length == 1 && CAN8ValuesCount < MaxCAN8Values)
                         {
+                            string CANCommand8;
+                            double a = 2;
+                            string charstroke;
+                            int minbit; int maxbit; int bitcount;
                             //CANbit = Convert.ToInt32(chars.Length) * 8;
                             if (CheckBox_Filter_PGN.IsChecked == true)
                             {
-                                if (listCAN8.Contains(key.Remove(4)))
+                                //if (listCAN8.Contains(key.Remove(4)))
+                                //{
+                                if (IdPath != "")
                                 {
-                                    sw.WriteLine("CAN" + "8" + "BITR" + Convert.ToString(listCAN8.IndexOf(key.Remove(4))) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
-                                    swCMD.WriteLine("CAN" + "8" + "BITR" + Convert.ToString(listCAN8.IndexOf(key.Remove(4))) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                    CANCommand8 = "CAN" + "8" + "BITR" + Convert.ToString(count8);
+                                    sw.WriteLine(CANCommand8 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                    //swCMD.WriteLine(CANCommand8 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                    //sw.WriteLine("mainpackbit " + MyIni.ReadINI("CANCommands", CANCommand8) + ",1");
+                                    if (count8 < 15)
+                                    {
+                                        if (_dictForCommitsPMR[key + IdPath][j].Contains("биты"))
+                                        {
+
+                                            //sw.WriteLine("can_r" + Convert.ToString(count8) + " " + _dictForCommitsPMR[key + IdPath][j].Remove(0, _dictForCommitsPMR[key + IdPath][j].IndexOf(",") + 2));
+                                            f = "";
+                                            charstroke = _dictForCommitsPMR[key + IdPath][j].Substring(_dictForCommitsPMR[key + IdPath][j].IndexOf("биты")+5, 4);
+                                            charstroke = string.Concat(charstroke.Where(Char.IsDigit));
+                                            minbit = Convert.ToInt32(charstroke.Substring(0, 1));
+                                            maxbit = Convert.ToInt32(charstroke.Substring(1, 1));
+                                            bitcount = maxbit - minbit + 1;
+                                            for (int b = 0; b < bitcount; b++)
+                                            {
+                                                var result = Math.Pow(a, b);
+                                                if (result == 1)
+                                                {
+                                                    f = f + "can_r" + Convert.ToString(count8) + ":" + Convert.ToString(minbit);
+                                                }
+                                                else
+                                                {
+                                                    f = f + "+can_r" + Convert.ToString(count8) + ":" + Convert.ToString(minbit) + "*const"+Convert.ToString(result);
+                                                }
+                                                minbit++;
+                                            }
+                                            obj.WriteLine(f);
+
+                                            //sw.WriteLine("can_r" + Convert.ToString(count8) + f);
+                                        }
+                                        else
+                                        {
+                                            //sw.WriteLine("can_r" + Convert.ToString(count8) + " " + _dictForCommitsPMR[key + IdPath][j].Remove(0, _dictForCommitsPMR[key + IdPath][j].IndexOf(";") + 1));
+                                            obj.WriteLine("can_r" + Convert.ToString(count8) + f);
+
+                                        }
+                                    }
+                                    else if (count8 > 14 && count8 + 1 < 32)
+                                    {
+                                        if (_dictForCommitsPMR[key + IdPath][j].Contains("биты"))
+                                        {
+                                            //sw.WriteLine("can8bitr" + Convert.ToString(count8 + 1) + " " + _dictForCommitsPMR[key + IdPath][j].Remove(0, _dictForCommitsPMR[key + IdPath][j].IndexOf(",") + 2));
+                                            //sw.WriteLine("can8bitr" + Convert.ToString(count8 + 1) + f);
+                                            f = "";
+                                            charstroke = _dictForCommitsPMR[key + IdPath][j].Substring(_dictForCommitsPMR[key + IdPath][j].IndexOf("биты") + 5, 4);
+                                            charstroke = string.Concat(charstroke.Where(Char.IsDigit));
+                                            minbit = Convert.ToInt32(charstroke.Substring(0, 1));
+                                            maxbit = Convert.ToInt32(charstroke.Substring(1, 1));
+                                            bitcount = maxbit - minbit + 1;
+                                            for (int b = 0; b < bitcount; b++)
+                                            {
+                                                var result = Math.Pow(a, b);
+                                                if (result == 1)
+                                                {
+                                                    f = f + "can8bitr" + Convert.ToString(count8) + ":" + Convert.ToString(minbit);
+                                                }
+                                                else
+                                                {
+                                                    f = f + "+can8bitr" + Convert.ToString(count8) + ":" + Convert.ToString(minbit) + "*const" + Convert.ToString(result);
+                                                }
+                                                minbit++;
+                                            }
+                                            obj.WriteLine(f);
+                                        }
+                                        else
+                                        {
+                                            //sw.WriteLine("can8bitr" + Convert.ToString(count8 + 1) + " " + _dictForCommitsPMR[key + IdPath][j].Remove(0, _dictForCommitsPMR[key + IdPath][j].IndexOf(";") + 1));
+                                            obj.WriteLine("can8bitr" + Convert.ToString(count8 + 1) + f);
+                                        }
+                                    }
+                                    count8++;
+                                    listTags.Add(CANCommand8 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                    listCommands.Add("mainpackbit " + MyIni.ReadINI("CANCommands", CANCommand8) + ",1");
+
                                 }
                                 else
                                 {
-                                    sw.WriteLine("CAN" + "8" + "BITR" + Convert.ToString(count8) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
-                                    swCMD.WriteLine("CAN" + "8" + "BITR" + Convert.ToString(count8) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+
+                                    CANCommand8 = "CAN" + "8" + "BITR" + Convert.ToString(count8);
+                                    sw.WriteLine(CANCommand8 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                    //swCMD.WriteLine(CANCommand8 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                    //sw.WriteLine("mainpackbit " + MyIni.ReadINI("CANCommands", CANCommand8) + ",1");
+                                    if (count8 < 15)
+                                    {
+                                        if (_dictForCommitsPMR[key][j].Contains("биты"))
+                                        {
+                                            //sw.WriteLine("can_r" + Convert.ToString(count8) + " " + _dictForCommitsPMR[key][j].Remove(0, _dictForCommitsPMR[key][j].IndexOf(",") + 2));
+                                            //sw.WriteLine("can_r" + Convert.ToString(count8) + f);
+                                            f = "";
+                                            charstroke = _dictForCommitsPMR[key][j].Substring(_dictForCommitsPMR[key][j].IndexOf("биты") + 5, 4);
+                                            charstroke = string.Concat(charstroke.Where(Char.IsDigit));
+                                            minbit = Convert.ToInt32(charstroke.Substring(0, 1));
+                                            maxbit = Convert.ToInt32(charstroke.Substring(1, 1));
+                                            bitcount = maxbit - minbit + 1;
+                                            for (int b = 0; b < bitcount; b++)
+                                            {
+                                                var result = Math.Pow(a, b);
+                                                if (result == 1)
+                                                {
+                                                    f = f + "can_r" + Convert.ToString(count8) + ":" + Convert.ToString(minbit);
+                                                }
+                                                else
+                                                {
+                                                    f = f + "+can_r" + Convert.ToString(count8) + ":" + Convert.ToString(minbit) + "*const" + Convert.ToString(result);
+                                                }
+                                                minbit++;
+                                            }
+                                            obj.WriteLine(f);
+                                        }
+                                        else
+                                        {
+                                            //sw.WriteLine("can_r" + Convert.ToString(count8) + " " + _dictForCommitsPMR[key][j].Remove(0, _dictForCommitsPMR[key][j].IndexOf(";") + 1));
+                                            obj.WriteLine("can_r" + Convert.ToString(count8) + f);
+                                        }
+                                    }
+                                    else if (count8 > 14 && count8 + 1 < 32)
+                                    {
+                                        if (_dictForCommitsPMR[key][j].Contains("биты"))
+                                        {
+                                            //sw.WriteLine("can8bitr" + Convert.ToString(count8 + 1) + " " + _dictForCommitsPMR[key][j].Remove(0, _dictForCommitsPMR[key][j].IndexOf(",") + 2));
+                                            //sw.WriteLine("can8bitr" + Convert.ToString(count8 + 1) + f);
+                                            f = "";
+                                            charstroke = _dictForCommitsPMR[key][j].Substring(_dictForCommitsPMR[key][j].IndexOf("биты") + 5, 4);
+                                            charstroke = string.Concat(charstroke.Where(Char.IsDigit));
+                                            minbit = Convert.ToInt32(charstroke.Substring(0, 1));
+                                            maxbit = Convert.ToInt32(charstroke.Substring(1, 1));
+                                            bitcount = maxbit - minbit + 1;
+                                            for (int b = 0; b < bitcount; b++)
+                                            {
+                                                var result = Math.Pow(a, b);
+                                                if (result == 1)
+                                                {
+                                                    f = f + "can8bitr" + Convert.ToString(count8) + ":" + Convert.ToString(minbit);
+                                                }
+                                                else
+                                                {
+                                                    f = f + "+can8bitr" + Convert.ToString(count8) + ":" + Convert.ToString(minbit) + "*const" + Convert.ToString(result);
+                                                }
+                                                minbit++;
+                                            }
+                                            obj.WriteLine(f);
+                                        }
+                                        else
+                                        {
+                                            //sw.WriteLine("can8bitr" + Convert.ToString(count8 + 1) + " " + _dictForCommitsPMR[key][j].Remove(0, _dictForCommitsPMR[key][j].IndexOf(";") + 1));
+                                            obj.WriteLine("can8bitr" + Convert.ToString(count8 + 1) + f);
+                                        }
+                                    }
                                     count8++;
-                                    listCAN8.Add(key.Remove(4));
+                                    listTags.Add(CANCommand8 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                    listCommands.Add("mainpackbit " + MyIni.ReadINI("CANCommands", CANCommand8) + ",1");
+
                                 }
+
+                                //}
+                                //else
+                                //{
+                                //    CANCommand8 = "CAN" + "8" + "BITR" + Convert.ToString(count8);
+                                //    sw.WriteLine(CANCommand8 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                //    swCMD.WriteLine(CANCommand8 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                //    sw.WriteLine("mainpackbit " + MyIni.ReadINI("CANCommands", CANCommand8) + ",1");
+                                //    count8++;
+                                //    listCAN8.Add(key.Remove(4));
+                                //}
 
                             }
                             else
                             {
-                                sw.WriteLine("CAN" + "8" + "BITR" + Convert.ToString(count8) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 2), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
-                                swCMD.WriteLine("CAN" + "8" + "BITR" + Convert.ToString(count8) + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 2), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                CANCommand8 = "CAN" + "8" + "BITR" + Convert.ToString(count8);
+                                sw.WriteLine(CANCommand8 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 2), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                //swCMD.WriteLine(CANCommand8 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 2), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                //sw.WriteLine("mainpackbit " + MyIni.ReadINI("CANCommands", CANCommand8) + ",1");
+                                if (count8 < 15)
+                                {
+                                    if (_dictForCommitsPMR[key][j].Contains("биты"))
+                                    {
+                                        //sw.WriteLine("can_r" + Convert.ToString(count8) + " " + _dictForCommitsPMR[key][j].Remove(0, _dictForCommitsPMR[key][j].IndexOf(",") + 2));
+                                        //sw.WriteLine("can_r" + Convert.ToString(count8) + f);
+                                        f = "";
+                                        charstroke = _dictForCommitsPMR[key][j].Substring(_dictForCommitsPMR[key][j].IndexOf("биты") + 5, 4);
+                                        charstroke = string.Concat(charstroke.Where(Char.IsDigit));
+                                        minbit = Convert.ToInt32(charstroke.Substring(0, 1));
+                                        maxbit = Convert.ToInt32(charstroke.Substring(1, 1));
+                                        bitcount = maxbit - minbit + 1;
+                                        for (int b = 0; b < bitcount; b++)
+                                        {
+                                            var result = Math.Pow(a, b);
+                                            if (result == 1)
+                                            {
+                                                f = f + "can_r" + Convert.ToString(count8) + ":" + Convert.ToString(minbit);
+                                            }
+                                            else
+                                            {
+                                                f = f + "+can_r" + Convert.ToString(count8) + ":" + Convert.ToString(minbit) + "*const" + Convert.ToString(result);
+                                            }
+                                            minbit++;
+                                        }
+                                        obj.WriteLine(f);
+                                    }
+                                    else
+                                    {
+                                        //sw.WriteLine("can_r" + Convert.ToString(count8) + " " + _dictForCommitsPMR[key][j].Remove(0, _dictForCommitsPMR[key][j].IndexOf(";") + 1));
+                                        obj.WriteLine("can_r" + Convert.ToString(count8) + f);
+                                    }
+                                }
+                                else if (count8 > 14 && count8 + 1 < 32)
+                                {
+                                    if (_dictForCommitsPMR[key][j].Contains("биты"))
+                                    {
+                                        //sw.WriteLine("can8bitr" + Convert.ToString(count8 + 1) + " " + _dictForCommitsPMR[key][j].Remove(0, _dictForCommitsPMR[key][j].IndexOf(",") + 2));
+                                        //sw.WriteLine("can8bitr" + Convert.ToString(count8 + 1) + f);
+                                        f = "";
+                                        charstroke = _dictForCommitsPMR[key][j].Substring(_dictForCommitsPMR[key][j].IndexOf("биты") + 5, 4);
+                                        charstroke = string.Concat(charstroke.Where(Char.IsDigit));
+                                        minbit = Convert.ToInt32(charstroke.Substring(0, 1));
+                                        maxbit = Convert.ToInt32(charstroke.Substring(1, 1));
+                                        bitcount = maxbit - minbit + 1;
+                                        for (int b = 0; b < bitcount; b++)
+                                        {
+                                            var result = Math.Pow(a, b);
+                                            if (result == 1)
+                                            {
+                                                f = f + "can8bitr" + Convert.ToString(count8) + ":" + Convert.ToString(minbit);
+                                            }
+                                            else
+                                            {
+                                                f = f + "+can8bitr" + Convert.ToString(count8) + ":" + Convert.ToString(minbit) + "*const" + Convert.ToString(result);
+                                            }
+                                            minbit++;
+                                        }
+                                        obj.WriteLine(f);
+                                    }
+                                    else
+                                    {
+                                        //sw.WriteLine("can8bitr" + Convert.ToString(count8 + 1) + " " + _dictForCommitsPMR[key][j].Remove(0, _dictForCommitsPMR[key][j].IndexOf(";") + 1));
+                                        obj.WriteLine("can8bitr" + Convert.ToString(count8 + 1) + f);
+                                    }
+                                }
                                 count8++;
+                                listTags.Add(CANCommand8 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 2), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                listCommands.Add("mainpackbit " + MyIni.ReadINI("CANCommands", CANCommand8) + ",1");
                             }
                             CAN8ValuesCount++;
                         }
@@ -2929,6 +3589,17 @@ namespace InterraCAN
                 //string IdAdress = _dictForCommitsPMR.Keys[i];
             }
             sw.Close();
+            obj.Close();
+            swCMD.WriteLine();
+            for (int i = 0; i < listCommands.Count; i++)
+            {
+                swCMD.WriteLine(listCommands[i]);
+            }
+            swCMD.WriteLine();
+            for (int i = 0; i < listTags.Count; i++)
+            {
+                swCMD.WriteLine(listTags[i]);
+            }
             swCMD.Close();
             //}
         }
@@ -2942,6 +3613,18 @@ namespace InterraCAN
         private void CB_FilterOneByte_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             //CB_FilterOneByte.SelectionChanged += CB_FilterOneByte_SelectionChanged;
+        }
+
+        private void WindowSettings_Closed(object sender, EventArgs e)
+        {
+            var MyIni = new IniFiles("Settings.ini");
+            //WindowSettings.Height = Convert.ToDouble(MyIni.ReadINI("Window", "Height"));
+            //WindowSettings.Width = Convert.ToDouble(MyIni.ReadINI("Window", "Width"));
+            MyIni.Write("Window", "Height", Convert.ToString(WindowSettings.Height));
+            MyIni.Write("Window", "Width", Convert.ToString(WindowSettings.Width));
+            MyIni.Write("Window", "Left", Convert.ToString(WindowSettings.Left));
+            MyIni.Write("Window", "Top", Convert.ToString(WindowSettings.Top));
+            //MyIni.Write("Window", "WindowState", Convert.ToString(WindowSettings.WindowState));
         }
 
         //private void CB_FilterOneByte_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
