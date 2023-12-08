@@ -66,7 +66,14 @@ namespace InterraCAN
             WindowSettings.Width = Convert.ToDouble(MyIni.ReadINI("Window", "Width"));
             WindowSettings.Top = Convert.ToDouble(MyIni.ReadINI("Window", "Top"));
             WindowSettings.Left = Convert.ToDouble(MyIni.ReadINI("Window", "Left"));
-
+            listAllBytes.Add(_bitsByte0);
+            listAllBytes.Add(_bitsByte1);
+            listAllBytes.Add(_bitsByte2);
+            listAllBytes.Add(_bitsByte3);
+            listAllBytes.Add(_bitsByte4);
+            listAllBytes.Add(_bitsByte5);
+            listAllBytes.Add(_bitsByte6);
+            listAllBytes.Add(_bitsByte7);
             //WindowSettings.WindowState = TryParse(MyIni.ReadINI("Window", "WindowState"));
             //WindowSettings.Visibility = Visibility.Visible;
         }
@@ -127,7 +134,7 @@ namespace InterraCAN
         public PlotModel ModelByte7 { get; private set; }
         public PlotModel ModelByte76BE { get; private set; }
 
-
+        public PlotModel ModelAllBytes { get; private set; }
 
         public static void DoEvents()
         {
@@ -3037,7 +3044,7 @@ namespace InterraCAN
                 _dictForCommitsPMR[key] = _dictForCommitsPMR[key].Distinct().ToList();
                 if (_dictForCommitsPMR[key].Count != 0)
                 {
-                    
+
                     for (int j = 0; j < _dictForCommitsPMR[key].Count; j++)
                     {
                         string c;
@@ -3338,7 +3345,7 @@ namespace InterraCAN
 
                                             //sw.WriteLine("can_r" + Convert.ToString(count8) + " " + _dictForCommitsPMR[key + IdPath][j].Remove(0, _dictForCommitsPMR[key + IdPath][j].IndexOf(",") + 2));
                                             f = "";
-                                            charstroke = _dictForCommitsPMR[key + IdPath][j].Substring(_dictForCommitsPMR[key + IdPath][j].IndexOf("биты")+5, 4);
+                                            charstroke = _dictForCommitsPMR[key + IdPath][j].Substring(_dictForCommitsPMR[key + IdPath][j].IndexOf("биты") + 5, 4);
                                             charstroke = string.Concat(charstroke.Where(Char.IsDigit));
                                             minbit = Convert.ToInt32(charstroke.Substring(0, 1));
                                             maxbit = Convert.ToInt32(charstroke.Substring(1, 1));
@@ -3352,7 +3359,7 @@ namespace InterraCAN
                                                 }
                                                 else
                                                 {
-                                                    f = f + "+can_r" + Convert.ToString(count8) + ":" + Convert.ToString(minbit) + "*const"+Convert.ToString(result);
+                                                    f = f + "+can_r" + Convert.ToString(count8) + ":" + Convert.ToString(minbit) + "*const" + Convert.ToString(result);
                                                 }
                                                 minbit++;
                                             }
@@ -3626,47 +3633,640 @@ namespace InterraCAN
             MyIni.Write("Window", "Top", Convert.ToString(WindowSettings.Top));
             //MyIni.Write("Window", "WindowState", Convert.ToString(WindowSettings.WindowState));
         }
-
-        //private void CB_FilterOneByte_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        string _strokeByte0;
+        string _strokeByte1;
+        string _strokeByte2;
+        string _strokeByte3;
+        string _strokeByte4;
+        string _strokeByte5;
+        string _strokeByte6;
+        string _strokeByte7;
+        byte[] _bitsByte0 = { 0, 0, 0, 0, 0, 0, 0, 0 };
+        byte[] _bitsByte1 = { 0, 0, 0, 0, 0, 0, 0, 0 };
+        byte[] _bitsByte2 = { 0, 0, 0, 0, 0, 0, 0, 0 };
+        byte[] _bitsByte3 = { 0, 0, 0, 0, 0, 0, 0, 0 };
+        byte[] _bitsByte4 = { 0, 0, 0, 0, 0, 0, 0, 0 };
+        byte[] _bitsByte5 = { 0, 0, 0, 0, 0, 0, 0, 0 };
+        byte[] _bitsByte6 = { 0, 0, 0, 0, 0, 0, 0, 0 };
+        byte[] _bitsByte7 = { 0, 0, 0, 0, 0, 0, 0, 0 };
+        List<byte[]> listAllBytes = new List<byte[]>();
         //{
-        //    if (TabItemOneByte.IsSelected == true)
-        //    {
-        //        plotByte0.Visibility = Visibility.Hidden;
-        //        plotByte1.Visibility = Visibility.Hidden;
-        //        plotByte2.Visibility = Visibility.Hidden;
-        //        plotByte3.Visibility = Visibility.Hidden;
-        //        plotByte4.Visibility = Visibility.Hidden;
-        //        plotByte5.Visibility = Visibility.Hidden;
-        //        plotByte6.Visibility = Visibility.Hidden;
-        //        plotByte7.Visibility = Visibility.Hidden;
-        //        if (CB_FilterOneByte.SelectedItem != null)
-        //        {
-        //            _itemByte0Selected = (string)CB_FilterOneByte.SelectedItem;
-
-        //        }
-        //        //TabItemOneByte.Refresh();
-        //        string msgId = (string)LB_Uniq.SelectedItem;
-        //        LB_Uniq.SelectedIndex = -1;
-        //        plotByte0.Visibility = Visibility.Visible;
-        //        plotByte1.Visibility = Visibility.Visible;
-        //        plotByte2.Visibility = Visibility.Visible;
-        //        plotByte3.Visibility = Visibility.Visible;
-        //        plotByte4.Visibility = Visibility.Visible;
-        //        plotByte5.Visibility = Visibility.Visible;
-        //        plotByte6.Visibility = Visibility.Visible;
-        //        plotByte7.Visibility = Visibility.Visible;
-        //        LB_Uniq.SelectedItem = msgId;
-        //    }
-        //}
+        //    ({ 0, 0, 0, 0, 0, 0, 0, 0 }),
+        //    ({ 0, 0, 0, 0, 0, 0, 0, 0 }),
+        //    ({ 0, 0, 0, 0, 0, 0, 0, 0 }),
+        //    ({ 0, 0, 0, 0, 0, 0, 0, 0 }),
+        //    ({ 0, 0, 0, 0, 0, 0, 0, 0 }),
+        //    ({ 0, 0, 0, 0, 0, 0, 0, 0 }),
+        //    ({ 0, 0, 0, 0, 0, 0, 0, 0 }),
+        //    ({ 0, 0, 0, 0, 0, 0, 0, 0 })
+        //};
 
 
-        //if (TabItemOneByte.IsSelected = true)
-        //{
-        //    var grid = new Grid();
-        //    grid.InvalidateVisual();
-        //}
+
+
+        private void ByteBit_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            TextBlock textBlock = (TextBlock)sender;
+
+            if (textBlock.Foreground == Brushes.Black)
+            {
+                if (textBlock.Text.Length == 2)
+                {
+                    //textBlock.Foreground = Brushes.Red;
+                    foreach (var c in this.GridOfBytes.Children)
+                    {
+                        if (c is StackPanel)
+                        {
+                            StackPanel stackPanel = (StackPanel)c;
+                            if (stackPanel.Name != "")
+                            {
+                                string charByte = string.Concat(textBlock.Name.Where(Char.IsDigit));
+                                string panelName = string.Concat(stackPanel.Name.Where(Char.IsDigit));
+                                if (panelName == charByte)
+                                {
+                                    foreach (var k in stackPanel.Children)
+                                    {
+                                        if (k is StackPanel)
+                                        {
+                                            StackPanel stackPanelBits = (StackPanel)k;
+                                            foreach (var l in stackPanelBits.Children)
+                                            {
+                                                if (l is TextBlock)
+                                                {
+                                                    TextBlock textByte = (TextBlock)l;
+                                                    textByte.Foreground = Brushes.Red;
+                                                    string charsByte = string.Concat(textByte.Name.Where(Char.IsDigit));
+                                                    if (charsByte.Length == 2)
+                                                    {
+                                                        string charsBit = charsByte.Substring(1, 1);
+                                                        charsByte = charsByte.Substring(0, 1);
+                                                        listAllBytes[Convert.ToInt32(charsByte)][Convert.ToInt32(charsBit)] = 1;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    textBlock.Foreground = Brushes.Red;
+                    string charsByte = string.Concat(textBlock.Name.Where(Char.IsDigit));
+                    string charsBit = charsByte.Substring(1, 1);
+                    charsByte = charsByte.Substring(0, 1);
+                    listAllBytes[Convert.ToInt32(charsByte)][Convert.ToInt32(charsBit)] = 1;
+                    int counter = 0;
+
+                    for (int i = 0; i < listAllBytes[Convert.ToInt32(charsByte)].Length; i++)
+                    {
+                        if (listAllBytes[Convert.ToInt32(charsByte)][i] == 1)
+                        {
+                            counter++;
+                        }
+                    }
+                    if (counter == 8)
+                    {
+                        foreach (var c in this.GridOfBytes.Children)
+                        {
+                            if (c is StackPanel)
+                            {
+                                StackPanel stackPanel = (StackPanel)c;
+                                string panelName = string.Concat(stackPanel.Name.Where(Char.IsDigit));
+                                if (panelName == charsByte)
+                                {
+                                    foreach (var k in stackPanel.Children)
+                                    {
+                                        if (k is StackPanel)
+                                        {
+                                            StackPanel spbyte = (StackPanel)k;
+                                            if (spbyte.Name != "")
+                                            {
+                                                foreach (var z in spbyte.Children)
+                                                {
+                                                    TextBlock textBlockz = (TextBlock)z;
+                                                    textBlockz.Foreground = Brushes.Red;
+                                                }
+                                            }
+                                        }
+
+                                    }
+                                }
+
+
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (textBlock.Text.Length == 2)
+                {
+                    //textBlock.Foreground = Brushes.Black;
+                    foreach (var c in this.GridOfBytes.Children)
+                    {
+                        if (c is StackPanel)
+                        {
+                            StackPanel stackPanel = (StackPanel)c;
+                            if (stackPanel.Name != "")
+                            {
+                                string charByte = string.Concat(textBlock.Name.Where(Char.IsDigit));
+                                string panelName = string.Concat(stackPanel.Name.Where(Char.IsDigit));
+                                if (panelName == charByte)
+                                {
+                                    foreach (var k in stackPanel.Children)
+                                    {
+                                        if (k is StackPanel)
+                                        {
+                                            StackPanel stackPanelBits = (StackPanel)k;
+                                            foreach (var l in stackPanelBits.Children)
+                                            {
+                                                if (l is TextBlock)
+                                                {
+                                                    TextBlock textByte = (TextBlock)l;
+                                                    textByte.Foreground = Brushes.Black;
+                                                    string charsByte = string.Concat(textByte.Name.Where(Char.IsDigit));
+                                                    if (charsByte.Length == 2)
+                                                    {
+                                                        string charsBit = charsByte.Substring(1, 1);
+                                                        charsByte = charsByte.Substring(0, 1);
+                                                        listAllBytes[Convert.ToInt32(charsByte)][Convert.ToInt32(charsBit)] = 0;
+
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    textBlock.Foreground = Brushes.Black;
+                    string charsByte = string.Concat(textBlock.Name.Where(Char.IsDigit));
+                    string charsBit = charsByte.Substring(1, 1);
+                    charsByte = charsByte.Substring(0, 1);
+                    listAllBytes[Convert.ToInt32(charsByte)][Convert.ToInt32(charsBit)] = 0;
+                    foreach (var c in this.GridOfBytes.Children)
+                    {
+                        if (c is StackPanel)
+                        {
+                            StackPanel stackPanel = (StackPanel)c;
+                            string panelName = string.Concat(stackPanel.Name.Where(Char.IsDigit));
+                            if (panelName == charsByte)
+                            {
+                                foreach (var k in stackPanel.Children)
+                                {
+                                    if (k is StackPanel)
+                                    {
+                                        StackPanel spbyte = (StackPanel)k;
+                                        if (spbyte.Name != "")
+                                        {
+                                            foreach (var z in spbyte.Children)
+                                            {
+                                                TextBlock textBlockz = (TextBlock)z;
+                                                textBlockz.Foreground = Brushes.Black;
+                                            }
+                                        }
+                                    }
+
+                                }
+                            }
+                        }
+
+
+                    }
+                }
+            }
+                string allBytes = "";
+                for (int i = 0; i < listAllBytes.Count; i++)
+                {
+
+                    for (int j = 0; j < 8; j++)
+                    {
+                        allBytes = allBytes + Convert.ToString(listAllBytes[i][j]);
+                    }
+                }
+                TB_AllBytes.Text = Convert.ToInt64(allBytes, 2).ToString("X");
+                while (TB_AllBytes.Text.Length < 16)
+                {
+                    TB_AllBytes.Text = "0" + TB_AllBytes.Text;
+                }
+            }
+
+            private void Button_Click_AllBytes(object sender, RoutedEventArgs e)
+            {
+                string strokeByte0; string indexByte0 = ""; string strokeBit0 = "";
+                string strokeByte1; string indexByte1 = ""; string strokeBit1 = "";
+                string strokeByte2; string indexByte2 = ""; string strokeBit2 = "";
+                string strokeByte3; string indexByte3 = ""; string strokeBit3 = "";
+                string strokeByte4; string indexByte4 = ""; string strokeBit4 = "";
+                string strokeByte5; string indexByte5 = ""; string strokeBit5 = "";
+                string strokeByte6; string indexByte6 = ""; string strokeBit6 = "";
+                string strokeByte7; string indexByte7 = ""; string strokeBit7 = "";
+                List<double> allBytes = new List<double>();
+                string strokeAllBytes;
+                for (int i = 0; i < listAllBytes[0].Length; i++)
+                {
+                    if (listAllBytes[0][i] == 1)
+                    {
+                        indexByte0 = indexByte0 + Convert.ToString(i);
+                    }
+
+                }
+                indexByte0 = Reverse(indexByte0);
+                for (int i = 0; i < listAllBytes[1].Length; i++)
+                {
+                    if (listAllBytes[1][i] == 1)
+                    {
+                        indexByte1 = indexByte1 + Convert.ToString(i);
+                    }
+
+                }
+                indexByte1 = Reverse(indexByte1);
+                for (int i = 0; i < listAllBytes[2].Length; i++)
+                {
+                    if (listAllBytes[2][i] == 1)
+                    {
+                        indexByte2 = indexByte2 + Convert.ToString(i);
+                    }
+
+                }
+                indexByte2 = Reverse(indexByte2);
+                for (int i = 0; i < listAllBytes[3].Length; i++)
+                {
+                    if (listAllBytes[3][i] == 1)
+                    {
+                        indexByte3 = indexByte3 + Convert.ToString(i);
+                    }
+
+                }
+                indexByte3 = Reverse(indexByte3);
+                for (int i = 0; i < listAllBytes[4].Length; i++)
+                {
+                    if (listAllBytes[4][i] == 1)
+                    {
+                        indexByte4 = indexByte4 + Convert.ToString(i);
+                    }
+
+                }
+                indexByte4 = Reverse(indexByte4);
+                for (int i = 0; i < listAllBytes[5].Length; i++)
+                {
+                    if (listAllBytes[5][i] == 1)
+                    {
+                        indexByte5 = indexByte5 + Convert.ToString(i);
+                    }
+
+                }
+                indexByte5 = Reverse(indexByte5);
+                for (int i = 0; i < listAllBytes[6].Length; i++)
+                {
+                    if (listAllBytes[6][i] == 1)
+                    {
+                        indexByte6 = indexByte6 + Convert.ToString(i);
+                    }
+
+                }
+                indexByte6 = Reverse(indexByte6);
+                for (int i = 0; i < listAllBytes[7].Length; i++)
+                {
+                    if (listAllBytes[7][i] == 1)
+                    {
+                        indexByte7 = indexByte7 + Convert.ToString(i);
+                    }
+
+                }
+                indexByte7 = Reverse(indexByte7);
+                for (int i = 0; i < _messages[_selectedID].Count; i++)
+                {
+                    strokeByte0 = String.Join(String.Empty, _messages[_selectedID][i][0].Select(c => Convert.ToString(Convert.ToInt32(c.ToString(), 16), 2).PadLeft(4, '0')));
+                    strokeByte1 = String.Join(String.Empty, _messages[_selectedID][i][1].Select(c => Convert.ToString(Convert.ToInt32(c.ToString(), 16), 2).PadLeft(4, '0')));
+                    strokeByte2 = String.Join(String.Empty, _messages[_selectedID][i][2].Select(c => Convert.ToString(Convert.ToInt32(c.ToString(), 16), 2).PadLeft(4, '0')));
+                    strokeByte3 = String.Join(String.Empty, _messages[_selectedID][i][3].Select(c => Convert.ToString(Convert.ToInt32(c.ToString(), 16), 2).PadLeft(4, '0')));
+                    strokeByte4 = String.Join(String.Empty, _messages[_selectedID][i][4].Select(c => Convert.ToString(Convert.ToInt32(c.ToString(), 16), 2).PadLeft(4, '0')));
+                    strokeByte5 = String.Join(String.Empty, _messages[_selectedID][i][5].Select(c => Convert.ToString(Convert.ToInt32(c.ToString(), 16), 2).PadLeft(4, '0')));
+                    strokeByte6 = String.Join(String.Empty, _messages[_selectedID][i][6].Select(c => Convert.ToString(Convert.ToInt32(c.ToString(), 16), 2).PadLeft(4, '0')));
+                    strokeByte7 = String.Join(String.Empty, _messages[_selectedID][i][7].Select(c => Convert.ToString(Convert.ToInt32(c.ToString(), 16), 2).PadLeft(4, '0')));
+
+                    if (indexByte0 == "")
+                    {
+                        strokeByte0 = "";
+                    }
+                    else if (indexByte0.Length != 8)
+                    {
+
+                        strokeBit0 = "";
+                        for (int v = 0; v < indexByte0.Length; v++)
+                        {
+                            strokeBit0 = strokeByte0.Substring(Convert.ToInt32(indexByte0.Substring(v, 1)), 1) + strokeBit0;
+                        }
+                        //while (strokeBit0.Length <8)
+                        //{
+                        //    strokeBit0 = "0" + strokeBit0;
+                        //}
+                        strokeByte0 = strokeBit0;
+                        while (strokeByte0.Length != 8)
+                        {
+                            strokeByte0 = "0" + strokeByte0;
+                        }
+                    }
+
+                    if (indexByte1 == "")
+                    {
+                        strokeByte1 = "";
+                    }
+                    else if (indexByte1.Length != 8)
+                    {
+                        strokeBit1 = "";
+                        for (int v = 0; v < indexByte0.Length; v++)
+                        {
+                            strokeBit1 = strokeByte1.Substring(Convert.ToInt32(indexByte1.Substring(v, 1)), 1) + strokeBit1;
+                        }
+                        strokeByte1 = strokeBit1;
+                        while (strokeByte1.Length != 8)
+                        {
+                            strokeByte1 = "0" + strokeByte1;
+                        }
+                    }
+
+                    if (indexByte2 == "")
+                    {
+                        strokeByte2 = "";
+                    }
+                    else if (indexByte2.Length != 8)
+                    {
+                        strokeBit2 = "";
+                        for (int v = 0; v < indexByte2.Length; v++)
+                        {
+                            strokeBit2 = strokeByte2.Substring(Convert.ToInt32(indexByte2.Substring(v, 1)), 1) + strokeBit2;
+                        }
+                        strokeByte2 = strokeBit2;
+                        while (strokeByte2.Length != 8)
+                        {
+                            strokeByte2 = "0" + strokeByte2;
+                        }
+                    }
+
+                    if (indexByte3 == "")
+                    {
+                        strokeByte3 = "";
+                    }
+                    else if (indexByte3.Length != 8)
+                    {
+                        strokeBit3 = "";
+                        for (int v = 0; v < indexByte3.Length; v++)
+                        {
+                            strokeBit3 = strokeByte3.Substring(Convert.ToInt32(indexByte3.Substring(v, 1)), 1) + strokeBit3;
+                        }
+                        strokeByte3 = strokeBit3;
+                        while (strokeByte3.Length != 8)
+                        {
+                            strokeByte3 = "0" + strokeByte3;
+                        }
+                    }
+
+                    if (indexByte4 == "")
+                    {
+                        strokeByte4 = "";
+                    }
+                    else if (indexByte4.Length != 8)
+                    {
+                        strokeBit4 = "";
+                        for (int v = 0; v < indexByte4.Length; v++)
+                        {
+                            strokeBit4 = strokeByte4.Substring(Convert.ToInt32(indexByte4.Substring(v, 1)), 1) + strokeBit4;
+                        }
+                        strokeByte4 = strokeBit4;
+                        while (strokeByte4.Length != 8)
+                        {
+                            strokeByte4 = "0" + strokeByte4;
+                        }
+                    }
+
+                    if (indexByte5 == "")
+                    {
+                        strokeByte5 = "";
+                    }
+                    else if (indexByte5.Length != 8)
+                    {
+                        strokeBit5 = "";
+                        for (int v = 0; v < indexByte5.Length; v++)
+                        {
+                            strokeBit5 = strokeByte5.Substring(Convert.ToInt32(indexByte5.Substring(v, 1)), 1) + strokeBit5;
+                        }
+                        strokeByte5 = strokeBit5;
+                        while (strokeByte5.Length != 8)
+                        {
+                            strokeByte5 = "0" + strokeByte5;
+                        }
+                    }
+
+                    if (indexByte6 == "")
+                    {
+                        strokeByte6 = "";
+                    }
+                    else if (indexByte6.Length != 8)
+                    {
+                        strokeBit6 = "";
+                        for (int v = 0; v < indexByte6.Length; v++)
+                        {
+                            strokeBit6 = strokeByte6.Substring(Convert.ToInt32(indexByte6.Substring(v, 1)), 1) + strokeBit6;
+                        }
+                        strokeByte6 = strokeBit6;
+                        while (strokeByte6.Length != 8)
+                        {
+                            strokeByte6 = "0" + strokeByte6;
+                        }
+                    }
+                    if (indexByte7 == "")
+                    {
+                        strokeByte7 = "";
+                    }
+                    else if (indexByte7.Length != 8)
+                    {
+                        strokeBit7 = "";
+                        for (int v = 0; v < indexByte7.Length; v++)
+                        {
+                            strokeBit7 = strokeByte7.Substring(Convert.ToInt32(indexByte7.Substring(v, 1)), 1) + strokeBit7;
+                        }
+                        strokeByte7 = strokeBit7;
+                        while (strokeByte7.Length != 8)
+                        {
+                            strokeByte7 = "0" + strokeByte7;
+                        }
+                    }
+
+                    strokeAllBytes = (strokeByte0 + strokeByte1 + strokeByte2 + strokeByte3 + strokeByte4 + strokeByte5 + strokeByte6 + strokeByte7);
+                    strokeAllBytes = Convert.ToUInt64(strokeAllBytes, 2).ToString("X");
+                    double strokeDouble;
+                    dynamic reversedBytes;
+                    if (RadioButtonLE.IsChecked == true)
+                    {
+
+                        if (strokeAllBytes.Length <= 2)
+                        {
+                            reversedBytes = (Convert.ToByte(strokeAllBytes, 16));
+                        }
+                        else if (strokeAllBytes.Length <= 4)
+                        {
+                            reversedBytes = System.Net.IPAddress.NetworkToHostOrder(Convert.ToInt16(strokeAllBytes, 16));
+                        }
+                        else if (strokeAllBytes.Length <= 8)
+                        {
+                            reversedBytes = System.Net.IPAddress.NetworkToHostOrder(Convert.ToInt32(strokeAllBytes, 16));
+                        }
+                        else
+                        {
+                            reversedBytes = System.Net.IPAddress.NetworkToHostOrder(Convert.ToInt64(strokeAllBytes, 16));
+                        }
+                        //strokeAllBytes = Convert.ToInt64(strokeAllBytes, 2).ToString("X");
+
+                        var hex = reversedBytes.ToString("x");
+                        //strokeDouble = LittleEndian(strokeAllBytes);
+                        allBytes.Add(Convert.ToDouble(Convert.ToUInt64(hex, 16)));
+                    }
+                    else
+                    {
+                        //strokeAllBytes = Convert.ToDouble(Convert.ToUInt64(strokeAllBytes, 2)).ToString("X");
+                        allBytes.Add(Convert.ToDouble(Convert.ToUInt64(strokeAllBytes, 16)));
+                    }
+
+                }
+                #region chartAllBytes
+                plotAllBytes.Visibility = Visibility.Collapsed;
+                var lineSeriesAllBytes = new LineSeries();
+                for (int i = 0; i < allBytes.Count; i++)
+                {
+                    lineSeriesAllBytes.Points.Add(new DataPoint(i, allBytes[i]));
+                }
+                lineSeriesAllBytes.Color = OxyColors.Blue;
+                lineSeriesAllBytes.StrokeThickness = 0.5;
+                this.ModelAllBytes = new PlotModel { };
+                this.ModelAllBytes.Series.Add(lineSeriesAllBytes);
+                plotAllBytes.Visibility = Visibility.Visible;
+                //plotByte0.Model.Series[0].TrackerKey.
+                //if (plotByte0.Model.Series[0].)
+                //{
+
+                //}
+                plotAllBytes.Model = ModelAllBytes;
+
+                ModelAllBytes.MouseDown += (s, e) =>
+                {
+                    if (e.IsShiftDown == true)
+                    {
+                        if (e.HitTestResult != null)
+                        {
+                            string item = e.HitTestResult.Item.ToString();
+                            int index = item.IndexOf(" ");
+                            int x = Convert.ToInt32(item.Remove(index));
+                            try
+                            {
+
+                                Tab_Msg.IsSelected = true;
+                                LB_Messages.SelectedIndex = Convert.ToInt32(x);
+                                LB_Messages.ScrollIntoView(LB_Messages.Items[x]);
+                            }
+                            catch (Exception)
+                            {
+
+                                throw;
+                            }
+                        }
+
+                    }
+                };
+
+                plotAllBytes.Model.TrackerChanged += (s, e) =>
+                {
+
+                    if (e.HitResult != null)
+                    {
+                        e.HitResult.Text = "Время: " + _timings[Convert.ToInt32(e.HitResult.DataPoint.X)];
+                        e.HitResult.Item = e.HitResult.Item + "Время: " + _timings[Convert.ToInt32(e.HitResult.DataPoint.X)];
+                    }
+
+                };
+                #endregion
+            }
+            //ПЕРЕДЕЛАТЬ ТО ЧТО НИЖЕ!
+            static string Reverse(string str)
+            {
+                char[] chars = str.ToCharArray();
+                Array.Reverse(chars);
+                return new string(chars);
+            }
+            //public static T Parse<T>(long value)
+            //{
+            //    // or ConvertFromInvariantString if you are doing serialization
+            //    return (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFrom((value));
+            //}
+            //static double LittleEndian(string num)
+            //{
+
+            //    long number = Convert.ToInt64(num, 16);
+            //    byte[] bytes = BitConverter.GetBytes(number);
+            //    //if (bytes.Length > num.Length/2)
+            //    //{
+            //    //    while (bytes.Length != num.Length/2)
+            //    //    {
+            //    //        Array.Resize(ref bytes, bytes.Length - 1);
+            //    //    }
+            //    //}
+            //    Array.Reverse(bytes);
+            //    double retval;
+            //    //foreach (byte b in bytes)
+
+            //        retval = BitConverter.ToDouble(bytes);
+            //    return retval;
+            //}
+            //private void CB_FilterOneByte_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+            //{
+            //    if (TabItemOneByte.IsSelected == true)
+            //    {
+            //        plotByte0.Visibility = Visibility.Hidden;
+            //        plotByte1.Visibility = Visibility.Hidden;
+            //        plotByte2.Visibility = Visibility.Hidden;
+            //        plotByte3.Visibility = Visibility.Hidden;
+            //        plotByte4.Visibility = Visibility.Hidden;
+            //        plotByte5.Visibility = Visibility.Hidden;
+            //        plotByte6.Visibility = Visibility.Hidden;
+            //        plotByte7.Visibility = Visibility.Hidden;
+            //        if (CB_FilterOneByte.SelectedItem != null)
+            //        {
+            //            _itemByte0Selected = (string)CB_FilterOneByte.SelectedItem;
+
+            //        }
+            //        //TabItemOneByte.Refresh();
+            //        string msgId = (string)LB_Uniq.SelectedItem;
+            //        LB_Uniq.SelectedIndex = -1;
+            //        plotByte0.Visibility = Visibility.Visible;
+            //        plotByte1.Visibility = Visibility.Visible;
+            //        plotByte2.Visibility = Visibility.Visible;
+            //        plotByte3.Visibility = Visibility.Visible;
+            //        plotByte4.Visibility = Visibility.Visible;
+            //        plotByte5.Visibility = Visibility.Visible;
+            //        plotByte6.Visibility = Visibility.Visible;
+            //        plotByte7.Visibility = Visibility.Visible;
+            //        LB_Uniq.SelectedItem = msgId;
+            //    }
+            //}
+
+
+            //if (TabItemOneByte.IsSelected = true)
+            //{
+            //    var grid = new Grid();
+            //    grid.InvalidateVisual();
+            //}
+
+
+        }
 
     }
-
-}
 
