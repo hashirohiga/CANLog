@@ -11,6 +11,7 @@
         Title="InterraCAN" Height="450" Width="1000"
         FontFamily="Cascadia Code"
         Closed="WindowSettings_Closed"
+        Icon="\Logo.ico"
         >
     <Grid>
 
@@ -97,6 +98,7 @@
                             Height="25"
                             Margin="5"
                             Content="Еще ACE"
+                            
                             Click="Button_Click"/>
                         <Button
                             Width="120"
@@ -174,12 +176,7 @@
                                 <RowDefinition Height="0.05*"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-                            <!--<ComboBox
-                                    Name="CB_FilterOneByte1"
-                                    SelectionChanged="CB_FilterOneByte_SelectionChanged"/>-->
-
                             <Label
-                                
                                 Name="LabelOneByte"/>
                             <ListBox
                                 Grid.Row="2"
@@ -206,22 +203,15 @@
                                     </ContextMenu>
                                 </ListBox.ContextMenu>
                             </ListBox>
-
                         </Grid>
-
                         <TabControl
                            Name="TabControl_Analize"
                             Grid.Column="1"
-                            SelectionChanged="TabControl_Analize_SelectionChanged"
-                            >
+                            SelectionChanged="TabControl_Analize_SelectionChanged">
                             <TabItem
                                 Header="график побайтно"
                                 Name="TabItemOneByte">
-
                                 <Grid>
-                                    <Grid.Resources>
-
-                                    </Grid.Resources>
                                     <!--Width="1800"-->
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition/>
@@ -243,7 +233,6 @@
                                             Panel.ZIndex="1"/>
                                     <oxy:PlotView x:Name="plotByte0">
                                     </oxy:PlotView>
-
                                     <!--chart2-->
                                     <ComboBox
                                         Name="CB_FilterByte2"
@@ -256,8 +245,6 @@
                                     <oxy:PlotView 
                                         Grid.Column="1"
                                         x:Name="plotByte2"/>
-
-
                                     <!--chart4-->
                                     <ComboBox
                                         Name="CB_FilterByte4"
@@ -270,7 +257,6 @@
                                     <oxy:PlotView 
                                      Grid.Column="2"               
                                      x:Name="plotByte4"/>
-
                                     <!--chart6-->
                                     <ComboBox
                                         Name="CB_FilterByte6"
@@ -295,7 +281,6 @@
                                     <oxy:PlotView      
                                         Grid.Row="1"
                                         x:Name="plotByte1"/>
-
                                     <!--chart3-->
                                     <ComboBox
                                         Name="CB_FilterByte3"
@@ -359,25 +344,21 @@
                                      Grid.Column="1"
                                      x:Name="plotByte23LE">
                                     </oxy:PlotView>
-
                                     <oxy:PlotView 
                                      Grid.Row="1"
                                      x:Name="plotByte45LE">
                                     </oxy:PlotView>
-
                                     <oxy:PlotView
                                      Grid.Column="1"
                                      Grid.Row="1"
                                      x:Name="plotByte67LE">
                                     </oxy:PlotView>
-
                                 </Grid>
                             </TabItem>
                             <TabItem Header="график 2x big endian"
                                      Name="Tab2xBE">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-
                                         <ColumnDefinition/>
                                         <ColumnDefinition/>
                                     </Grid.ColumnDefinitions>
@@ -388,7 +369,7 @@
                                     <oxy:PlotView
                                      x:Name="plotByte10BE">
                                     </oxy:PlotView>
-
+                                    
                                     <oxy:PlotView
                                      Grid.Row="1"
                                      x:Name="plotByte32BE">

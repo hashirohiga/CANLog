@@ -4,6 +4,15 @@
              xmlns:local="clr-namespace:InerraCAN"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <!--<ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Styles\AppColors.xaml"/>
+                <ResourceDictionary Source="Styles\ButtonStyles.xaml"/>
+                <ResourceDictionary Source="Styles\ComboBoxStyles.xaml"/>
+                <ResourceDictionary Source="Styles\ListViewStyles.xaml"/>
+                <ResourceDictionary Source="Styles\TabControlStyle.xaml"/>
+                <ResourceDictionary Source="Styles\TextBoxStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>--> 
     </Application.Resources>
 </Application>
