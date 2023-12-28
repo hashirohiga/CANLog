@@ -56,7 +56,7 @@
                         VerticalScrollBarVisibility="Visible"
                         IsReadOnly="True"
                         HorizontalContentAlignment="Left"
-                        x:Name="TB_List" FontFamily="Cascadia Code"/>
+                        x:Name="TB_List"/>
                         <Label
                         VerticalAlignment="Bottom"
                         Grid.Row="2"
@@ -155,7 +155,7 @@
             <TabItem
                 Header="Анализ"
                 Name="Tab_Charts"
-                IsEnabled="False" Height="20" Margin="-2,-2,-2,0" VerticalAlignment="Top"
+                IsEnabled="False" Height="20" VerticalAlignment="Top"
                 >
                 <Grid>
                     <Grid.RowDefinitions>
@@ -176,8 +176,89 @@
                                 <RowDefinition Height="0.05*"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-                            <Label
-                                Name="LabelOneByte"/>
+                            <StackPanel 
+                                Orientation="Horizontal">
+                                <CheckBox
+                                    Checked="Checks_Checked"
+                                    Unchecked="Checks_Checked"
+                                    Name="CheckGreen"
+                                    IsChecked="True" 
+                                    Height="15.5"
+                                    VerticalAlignment="Top">
+                                    <CheckBox.ToolTip>
+                                        <ToolTip>
+                                            <TextBlock Text="Показывать интересные"/>
+                                        </ToolTip>
+                                    </CheckBox.ToolTip>
+                                    <CheckBox.Background>
+                                        <SolidColorBrush Color="Green"/>
+                                    </CheckBox.Background>
+                                </CheckBox>
+                                <CheckBox
+                                     Name="CheckRed"
+                                    Checked="Checks_Checked"
+                                    Unchecked="Checks_Checked"
+                                     IsChecked="True"
+                                    Height="15.5"
+                                    VerticalAlignment="Top">
+                                    <CheckBox.ToolTip>
+                                        <ToolTip>
+                                            <TextBlock Text="Показывать неинтересные"/>
+                                        </ToolTip>
+                                    </CheckBox.ToolTip>
+                                    <CheckBox.Background>
+                                        <SolidColorBrush Color="Red"/>
+                                    </CheckBox.Background>
+                                </CheckBox>
+                                <CheckBox 
+                                     Name="CheckDefault"
+                                    Checked="Checks_Checked"
+                                    Unchecked="Checks_Checked"
+                                     IsChecked="True"
+                                    Height="15.5"
+                                    VerticalAlignment="Top">
+                                    <CheckBox.ToolTip>
+                                        <ToolTip>
+                                            <TextBlock Text="Показывать невыделенные"/>
+                                        </ToolTip>
+                                    </CheckBox.ToolTip>
+                                    <CheckBox.Background>
+                                        <SolidColorBrush/>
+                                    </CheckBox.Background>
+                                </CheckBox>
+                                <ComboBox
+                                    Margin="5,0,0,0"
+                                    Width="50"
+                                    Name="CB_FilterAllCharts"
+                                    SelectionChanged="CB_FilterAllCharts_SelectionChanged">
+                                    <ComboBoxItem Content="Без фильтра"/>
+                                    <ComboBoxItem Content="2"/>
+                                    <ComboBoxItem Content="4"/>
+                                    <ComboBoxItem Content="6"/>
+                                    <ComboBoxItem Content="8"/>
+                                    <ComboBoxItem Content="10"/>
+                                    <ComboBoxItem Content="12"/>
+                                    <ComboBoxItem Content="14"/>
+                                    <ComboBoxItem Content="16"/>
+                                    <ComboBoxItem Content="18"/>
+                                    <ComboBoxItem Content="20"/>
+                                    <ComboBoxItem Content="22"/>
+                                    <ComboBoxItem Content="24"/>
+                                    <ComboBoxItem Content="26"/>
+                                    <ComboBoxItem Content="28"/>
+                                    <ComboBoxItem Content="30"/>
+                                    <ComboBoxItem Content="32"/>
+                                    <ComboBoxItem Content="34"/>
+                                    <ComboBoxItem Content="36"/>
+                                    <ComboBoxItem Content="38"/>
+                                    <ComboBoxItem Content="40"/>
+                                    <ComboBoxItem Content="42"/>
+                                    <ComboBoxItem Content="44"/>
+                                    <ComboBoxItem Content="46"/>
+                                    <ComboBoxItem Content="48"/>
+                                    <ComboBoxItem Content="50"/>
+                                </ComboBox>
+                            </StackPanel>
                             <ListBox
                                 Grid.Row="2"
                                 x:Name="LB_Uniq"
@@ -187,16 +268,24 @@
                                 ScrollViewer.CanContentScroll="True"
                                 ScrollBar.Scroll="LB_Uniq_Scroll"
                                 Mouse.PreviewMouseWheel="LB_Uniq_PreviewMouseWheel"
-                                PreviewMouseLeftButtonDown="LB_Uniq_PreviewMouseLeftButtonDown" FontWeight="Bold">
+                                PreviewMouseLeftButtonDown="LB_Uniq_PreviewMouseLeftButtonDown">
+                                <!--<ListBoxItem MouseLeftButtonDown="LB_Uniq_MouseLeftButtonDown"/>-->
+                                <ListBox.ToolTip>
+                                    <ToolTip
+                                        Name="TT_Uniq"
+                                        Opened="ToolTip_Opened">
+                                        <TextBlock Name="Tb_ToolTip"/>
+                                    </ToolTip>
+                                </ListBox.ToolTip>
                                 <ListBox.ContextMenu>
                                     <ContextMenu>
                                         <MenuItem Header="Пометить как интересный" Click="MenuItemGreen_Click"/>
                                         <MenuItem Header="Пометить как неинтересный" Click="MenuItemRed_Click"/>
                                         <MenuItem Header="Снять пометку" Click="MenuItemClear_Click"/>
-                                        <Separator/>
-                                        <MenuItem Header="Скрыть помеченные неинтересными" Click="MenuItemHideItems_Click"/>
-                                        <MenuItem Header="Отобразить только интересные" Click="MenuItemShowGreenItems_Click"/>
-                                        <MenuItem Header="Отобразить все идентификаторы" Click="MenuItemShowAllItems_Click"/>
+                                        <Separator Visibility="Collapsed"/>
+                                        <MenuItem Header="Скрыть помеченные неинтересными" Click="MenuItemHideItems_Click" Visibility="Collapsed"/>
+                                        <MenuItem Header="Отобразить только интересные" Click="MenuItemShowGreenItems_Click" Visibility="Collapsed"/>
+                                        <MenuItem Header="Отобразить все идентификаторы" Click="MenuItemShowAllItems_Click" Visibility="Collapsed"/>
                                         <Separator/>
                                         <MenuItem x:Name="MenuItemAddCommit" Header="Добавить комментарий" Click="MenuItemAddCommit_Click"/>
                                         <MenuItem x:Name="MenuItemEditCommit" Header="Редактировать комментарий" Click="MenuItemEditCommit_Click" Visibility="Collapsed"/>
@@ -229,7 +318,7 @@
                                             VerticalAlignment="Top"
                                             Name="CB_FilterOneByte"
                                             SelectionChanged="CB_FilterOneByte_SelectionChanged"
-                                            Height="20" Width="20"
+                                            Height="20" Width="50"
                                             Panel.ZIndex="1"/>
                                     <oxy:PlotView x:Name="plotByte0">
                                     </oxy:PlotView>
@@ -240,7 +329,7 @@
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Top"
                                         Panel.ZIndex="1"
-                                        Width="20"
+                                        Width="50"
                                         Height="20"/>
                                     <oxy:PlotView 
                                         Grid.Column="1"
@@ -252,7 +341,7 @@
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Top"
                                         Panel.ZIndex="1"
-                                        Width="20"
+                                        Width="50"
                                         Height="20"/>
                                     <oxy:PlotView 
                                      Grid.Column="2"               
@@ -264,7 +353,7 @@
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Top" IsDropDownOpen="False"
                                         Panel.ZIndex="1"
-                                        Width="20"
+                                        Width="50"
                                         Height="20"/>
                                     <oxy:PlotView 
                                          Grid.Column="3"               
@@ -276,7 +365,7 @@
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Top" IsDropDownOpen="False"
                                         Panel.ZIndex="1"
-                                        Width="20"
+                                        Width="50"
                                         Height="20"/>
                                     <oxy:PlotView      
                                         Grid.Row="1"
@@ -289,7 +378,7 @@
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Top" IsDropDownOpen="False"
                                         Panel.ZIndex="1"
-                                        Width="20"
+                                        Width="50"
                                         Height="20"/>
                                     <oxy:PlotView 
                                          Grid.Column="1"
@@ -303,7 +392,7 @@
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Top" IsDropDownOpen="False"
                                         Panel.ZIndex="1"
-                                        Width="20"
+                                        Width="50"
                                         Height="20"/>
                                     <oxy:PlotView 
                                         Grid.Column="2"
@@ -317,7 +406,7 @@
                                         HorizontalAlignment="Left"
                                         VerticalAlignment="Top" IsDropDownOpen="False"
                                         Panel.ZIndex="1"
-                                        Width="20"
+                                        Width="50"
                                         Height="20"/>
                                     <oxy:PlotView 
                                         Grid.Column="3"
@@ -369,7 +458,7 @@
                                     <oxy:PlotView
                                      x:Name="plotByte10BE">
                                     </oxy:PlotView>
-                                    
+
                                     <oxy:PlotView
                                      Grid.Row="1"
                                      x:Name="plotByte32BE">
@@ -399,6 +488,7 @@
                                     <ListBox
                                     
                                     Name="LB_Messages"
+                                        SelectionChanged="LB_Messages_SelectionChanged"
                                     HorizontalAlignment="Left"
                                     ScrollViewer.VerticalScrollBarVisibility="Visible"/>
                                     <TextBox
@@ -914,7 +1004,7 @@
                                                     Name="Byte7Bit7"
                                                     MouseLeftButtonDown="ByteBit_MouseLeftButtonDown"/>
                                             </StackPanel>
-                                            
+
                                             <StackPanel
                                                 HorizontalAlignment="Center"
                                                 Name="SPByte7">
@@ -952,6 +1042,9 @@
                                 Name="BtnReadFile"
                                 Click="BtnReadFile_Click"
                                 IsEnabled="False"/>
+                            <ListBox Width="500"
+                                     Name="LB_Result"
+                                     />
                         </StackPanel>
                         <Label
                                 Width="150"
@@ -967,6 +1060,110 @@
 
                     </Grid>
                 </Grid>
+            </TabItem>
+            <TabItem
+                IsEnabled="False"
+                Header="Поиск"
+                Name="TabControl_Search">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox
+                        Grid.Column="0"
+                        Name="TB_Search"
+                        Visibility="Hidden"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        Margin="20,5,10,10"
+                        VerticalScrollBarVisibility="Visible"
+                        IsReadOnly="True"
+                        HorizontalContentAlignment="Left"/>
+                    <StackPanel
+                    Grid.Column="1"
+                    Orientation="Vertical"
+                        HorizontalAlignment="Center">
+                        <StackPanel
+                            Orientation="Horizontal">
+                            <TextBlock
+                                Margin="0,5,0,0"
+                                Text="Начальное время (с):"
+                                TextAlignment="Center"
+                                Height="20"/>
+                            <TextBox
+                                Name="TB_StartTime"
+                                Width="100"
+                                Height="20"/>
+                        </StackPanel>
+                        <StackPanel
+                            Orientation="Horizontal">
+                            <TextBlock
+                                Margin="7,5,0,0"
+                                Text="Конечное время (с):"
+                                TextAlignment="Center"
+                                Height="20"/>
+                            <TextBox
+                                Name="TB_EndTime"
+                                Width="100"
+                                Height="20"/>
+                        </StackPanel>
+                        <RadioButton
+                            Name="RB_1"
+                            IsChecked="True"
+                            Content="Искать значение в диапазоне"
+                            Margin="2"
+                            Checked="RB_1_Checked"
+                            Unchecked="RB_1_Unchecked"/>
+                        <RadioButton
+                            Name="RB_2"
+                            Content="Искать на сколько изменилось зачение"
+                            Margin="2"/>
+                        <StackPanel x:Name="SP_Check1"
+                            Orientation="Horizontal">
+                            <Label Content="от:"/>
+                            <TextBox Width="70"
+                                     Name="TB_Search1"
+                                     TextAlignment="Center"
+                                     Margin="1"/>
+                            <Label Content="до:"/>
+                            <TextBox Width="70"
+                                     Name="TB_Search2"
+                                     TextAlignment="Center"
+                                     Margin="1"/>
+                        </StackPanel>
+                        <StackPanel x:Name="SP_Check2"
+                                    Visibility="Collapsed"
+                            Orientation="Horizontal">
+                            <Label Content="на:"/>
+                            <TextBox Width="70"
+                                     Name="TB_Search3"
+                                     TextAlignment="Center"
+                                     Margin="1"/>
+                        </StackPanel>
+                        <Button
+                            Content="Выполнить"
+                            Width="100"
+                            Height="30"
+                            Margin="5"
+                            Click="Btn_StartSearch_Click"/>
+                    </StackPanel>
+                    <StackPanel 
+                        Orientation="Vertical"
+                        Grid.Column="2">
+                        <StackPanel
+                            Orientation="Vertical">
+                            <Label Content="Адреса, которые изменялись: "/>
+                            <TextBlock Name="TB_Adresses"
+                                       TextWrapping="WrapWithOverflow"/>
+                        </StackPanel>
+                        <Label Content="Обработка по первому байту:"/>
+                        <Label Content="Обработка по двум байтам :"/>
+                        <Label Content="Обработка по четырем байтам :"/>
+                    </StackPanel>
+                </Grid>
+
             </TabItem>
         </TabControl>
         <Popup

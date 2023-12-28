@@ -40,13 +40,18 @@ using InerraCAN;
 using System.Collections;
 using System.Net;
 using InerraCAN.Properties;
+using MathNet.Numerics;
+using MathNet.Numerics.LinearRegression;
+using Accord.Statistics;
+using Accord.Statistics.Models.Regression.Linear;
 
 namespace InterraCAN
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    /// 
+    public partial class MainWindow : System.Windows.Window
     {
 
 
@@ -142,13 +147,14 @@ namespace InterraCAN
             }
             if (_currentFile.FileName == "")
             {
-
+                LB_Result.Items.Clear();
                 ofd.Filter = "Text files (*.log)|*.log|All files (*.*)|*.*";
                 ofd.ShowDialog();
                 _currentFile = ofd;
             }
             if (_currentFile.FileName != "")
             {
+                LB_Result.Items.Clear();
                 if (_files != null)
                 {
                     _uniqId.Clear();
@@ -284,24 +290,20 @@ namespace InterraCAN
                 uniqId.Clear();
                 for (int i = 0; i < sortUniqId.Count; i++)
                 {
-                    uniqId.Add(Convert.ToString(sortUniqId[i], 16));
+                    //uniqId.Add(Convert.ToString(sortUniqId[i], 16));
+                    uniqId.Add(sortUniqId[i].ToString("X2"));
                     switch (uniqId[i].Length)
+                    // TODO
+                    // что делать в случае 0x0000001
                     {
                         case 2:
                             uniqId[i] = "0" + uniqId[i].ToUpper();
-                            uniqId[i] = "0x" + uniqId[i].ToUpper();
-                            break;
-                        case 3:
-                            uniqId[i] = "0x" + uniqId[i].ToUpper();
                             break;
                         case 7:
                             uniqId[i] = "0" + uniqId[i].ToUpper();
-                            uniqId[i] = "0x" + uniqId[i].ToUpper();
-                            break;
-                        case 8:
-                            uniqId[i] = "0x" + uniqId[i].ToUpper();
                             break;
                     }
+                    uniqId[i] = "0x" + uniqId[i].ToUpper();
                 }
                 PB_Load.Value = PB_Load.Value + 10;
                 DoEvents();
@@ -354,14 +356,18 @@ namespace InterraCAN
                 _uniqId = uniqId;
                 uniqId = null;
                 TabControl_Analize.IsEnabled = true;
+                TabControl_Search.IsEnabled = true;
                 Tab_Charts.IsEnabled = true;
                 Tab_Charts.IsSelected = true;
                 TabItemOneByte.IsSelected = true;
                 LB_Uniq.SelectedIndex = 0;
-                //для точки остановки
-                List<string> uniqId1 = new List<string>();
-                List<string> uniqId2 = new List<string>();
+                //TODO
                 Btn_PRM_CLick(sender, e);
+                LB_Result.Items.Add("Обработка log-файла успешно завершена.");
+            }
+            else
+            {
+                LB_Result.Items.Add("log-файл не был найден.");
             }
         }
         private void Lb_Uniq_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -395,6 +401,14 @@ namespace InterraCAN
             List<float> massByte23LE = new List<float>(); List<float> massByte32BE = new List<float>();
             List<float> massByte45LE = new List<float>(); List<float> massByte54BE = new List<float>();
             List<float> massByte67LE = new List<float>(); List<float> massByte76BE = new List<float>();
+            List<float> smoothedMassByte0 = new List<float>(); List<float> smoothedMassByte01 = new List<float>();
+            List<float> smoothedMassByte1 = new List<float>(); List<float> smoothedMassByte23 = new List<float>();
+            List<float> smoothedMassByte2 = new List<float>(); List<float> smoothedMassByte45 = new List<float>();
+            List<float> smoothedMassByte3 = new List<float>(); List<float> smoothedMassByte67 = new List<float>();
+            List<float> smoothedMassByte4 = new List<float>(); List<float> smoothedMassByte10 = new List<float>();
+            List<float> smoothedMassByte5 = new List<float>(); List<float> smoothedMassByte32 = new List<float>();
+            List<float> smoothedMassByte6 = new List<float>(); List<float> smoothedMassByte54 = new List<float>();
+            List<float> smoothedMassByte7 = new List<float>(); List<float> smoothedMassByte76 = new List<float>();
             List<string> listBoxData = new List<string>();
             List<string> replaseData0 = new List<string>();
             List<string> distinctData = _distinctData;
@@ -407,15 +421,6 @@ namespace InterraCAN
                 timing.Clear();
                 //берем все сообщения выбранного адреса и ниже составляем список со временем 
                 timing = _dataTime.FindAll(t => t.Contains(_selectedID));
-
-                if (CB_FilterOneByte.SelectedIndex == 0)
-                {
-                    LabelOneByte.Content = ("без фильтра");
-                }
-                if (CB_FilterOneByte.SelectedItem == null)
-                {
-                    LabelOneByte.Content = " ";
-                }
                 //если фильтры не выбраны, заполняем графики всеми байтами
                 if (CB_FilterOneByte.Items.Count == 0 &&
                     CB_FilterByte1.Items.Count == 0 &&
@@ -425,6 +430,8 @@ namespace InterraCAN
                     CB_FilterByte5.Items.Count == 0 &&
                     CB_FilterByte6.Items.Count == 0 &&
                     CB_FilterByte7.Items.Count == 0 ||
+                    // TODO
+                    // (CB_FilterOneByte.SelectedIndex in  (-1, 0))
                     (CB_FilterOneByte.SelectedIndex == -1 || CB_FilterOneByte.SelectedIndex == 0) &&
                     (CB_FilterByte1.SelectedIndex == -1 || CB_FilterByte1.SelectedIndex == 0) &&
                     (CB_FilterByte2.SelectedIndex == -1 || CB_FilterByte2.SelectedIndex == 0) &&
@@ -452,6 +459,8 @@ namespace InterraCAN
                     }
                     for (int i = 0; i < _messages[_selectedID].Count; i++)
                     {
+                        // TODO
+                        // byte_one = _messages[_selectedID][i][0]
                         y0.Add(i);
                         //заполняем списки для фильтров
                         massOneByte.Add(Convert.ToString(_messages[_selectedID][i][0]));
@@ -482,6 +491,7 @@ namespace InterraCAN
 
                     }
                 }
+                // проверить на else 
                 //если в фильрах чтото выбрано берем 
                 else if ((CB_FilterOneByte.Items.Count != 0 && CB_FilterOneByte.SelectedIndex > 0) ||
                          (CB_FilterByte1.Items.Count != 0 && CB_FilterByte1.SelectedIndex > 0) ||
@@ -578,20 +588,20 @@ namespace InterraCAN
                 }
                 if (_itemByte0Selected != null)
                 {
-                    LabelOneByte.Content = _itemByte0Selected;
+                    //LabelOneByte.Content = _itemByte0Selected;
 
                 }
                 else
                 {
-                    LabelOneByte.Content = " ";
+                    //LabelOneByte.Content = " ";
                     _listForCBox.Clear();
                 }
                 if (_idForCBox != _selectedID)
                 {
-                    LabelOneByte.Content = " ";
+                    //LabelOneByte.Content = " ";
                     _listForCBox.Clear();
                 }
-                LabelOneByte.Content = CB_FilterOneByte.SelectedItem;
+                //LabelOneByte.Content = CB_FilterOneByte.SelectedItem;
                 _files0.Clear(); _files4.Clear();
                 _files1.Clear(); _files5.Clear();
                 _files2.Clear(); _files6.Clear();
@@ -615,6 +625,28 @@ namespace InterraCAN
                 massOneByte5 = massOneByte5.Distinct().ToList();
                 massOneByte6 = massOneByte6.Distinct().ToList();
                 massOneByte7 = massOneByte7.Distinct().ToList();
+                //float trendMass0 = CalculateTrendlineSlope(massByte0);
+                //var trendMass 0 = MakeTrendFromData();
+
+                //листы для фильтрации среднего значения
+                smoothedMassByte0.AddRange(massByte0); SmoothingData(smoothedMassByte0);
+                smoothedMassByte1.AddRange(massByte1); SmoothingData(smoothedMassByte1);
+                smoothedMassByte2.AddRange(massByte2); SmoothingData(smoothedMassByte2);
+                smoothedMassByte3.AddRange(massByte3); SmoothingData(smoothedMassByte3);
+                smoothedMassByte4.AddRange(massByte4); SmoothingData(smoothedMassByte4);
+                smoothedMassByte5.AddRange(massByte5); SmoothingData(smoothedMassByte5);
+                smoothedMassByte6.AddRange(massByte6); SmoothingData(smoothedMassByte6);
+                smoothedMassByte7.AddRange(massByte7); SmoothingData(smoothedMassByte7);
+                smoothedMassByte01.AddRange(massByte01LE); SmoothingData(smoothedMassByte01);
+                smoothedMassByte23.AddRange(massByte23LE); SmoothingData(smoothedMassByte23);
+                smoothedMassByte45.AddRange(massByte45LE); SmoothingData(smoothedMassByte45);
+                smoothedMassByte67.AddRange(massByte67LE); SmoothingData(smoothedMassByte67);
+                smoothedMassByte10.AddRange(massByte10BE); SmoothingData(smoothedMassByte10);
+                smoothedMassByte32.AddRange(massByte32BE); SmoothingData(smoothedMassByte32);
+                smoothedMassByte54.AddRange(massByte54BE); SmoothingData(smoothedMassByte54);
+                smoothedMassByte76.AddRange(massByte76BE); SmoothingData(smoothedMassByte76);
+                List<double> trendData0 = new List<double>();
+
                 //сортировка списков в фильрах по возрастанию
                 _files0 = SortingCBox(massOneByte);
                 _files1 = SortingCBox(massOneByte1);
@@ -639,14 +671,31 @@ namespace InterraCAN
                 #region chart0
                 plotByte0.Visibility = Visibility.Collapsed;
                 var lineSeriesByte0 = new LineSeries();
+                var trendLineSeries0 = new LineSeries();
+                //List<float> trendMass0 = new List<float>();
+
                 for (int i = 0; i < massByte0.Count; i++)
                 {
                     lineSeriesByte0.Points.Add(new DataPoint(i, massByte0[i]));
+                    //trendLineSeries0.Points.Add(new DataPoint(i, a + b * massByte0[i]));
+                    trendLineSeries0.Points.Add(new DataPoint(i, smoothedMassByte0[i]));
                 }
+
+                var smoothDistinct = smoothedMassByte0.Distinct().ToList();
+                trendLineSeries0.IsVisible = smoothDistinct.Count == 1 ? false : true;
+                trendLineSeries0.Color = OxyColors.Red;
+                trendLineSeries0.InterpolationAlgorithm = InterpolationAlgorithms.CatmullRomSpline;
+                trendLineSeries0.CanTrackerInterpolatePoints = true;
+                //trendLineSeries0.
+                //trendLineSeries0.MinimumSegmentLength = 7;
                 lineSeriesByte0.Color = OxyColors.Blue;
                 lineSeriesByte0.StrokeThickness = 0.5;
+                //trendLineSeries0.StrokeThickness = 8;
+                //trendLineSeries0.InterpolationAlgorithm.CreateSpline(trendLineSeries0.Points, false, 2 );
                 this.ModelByte0 = new PlotModel { Title = "0" };
                 this.ModelByte0.Series.Add(lineSeriesByte0);
+                this.ModelByte0.Series.Add(trendLineSeries0);
+
                 plotByte0.Visibility = Visibility.Visible;
                 plotByte0.Model = ModelByte0;
 
@@ -690,14 +739,22 @@ namespace InterraCAN
                 #region chart1
                 plotByte1.Visibility = Visibility.Collapsed;
                 var lineSeriesByte1 = new LineSeries();
+                var trendLineSeries1 = new LineSeries();
                 for (int i = 0; i < massByte1.Count; i++)
                 {
                     lineSeriesByte1.Points.Add(new DataPoint(i, massByte1[i]));
+                    trendLineSeries1.Points.Add(new DataPoint(i, smoothedMassByte1[i]));
                 }
+                smoothDistinct = smoothedMassByte1.Distinct().ToList();
+                trendLineSeries1.IsVisible = smoothDistinct.Count == 1 ? false : true;
+                trendLineSeries1.Color = OxyColors.Red;
+                //CreateSmoothCurve(trendLineSeries1.Points, trendLineSeries1.Points);
+                trendLineSeries1.InterpolationAlgorithm = InterpolationAlgorithms.CanonicalSpline;
                 lineSeriesByte1.Color = OxyColors.Blue;
                 lineSeriesByte1.StrokeThickness = 0.5;
                 this.ModelByte1 = new PlotModel { Title = "1" };
                 this.ModelByte1.Series.Add(lineSeriesByte1);
+                this.ModelByte1.Series.Add(trendLineSeries1);
                 plotByte1.Visibility = Visibility.Visible;
                 plotByte1.Model = ModelByte1;
                 ModelByte1.MouseDown += (s, e) =>
@@ -741,14 +798,21 @@ namespace InterraCAN
                 #region chart2
                 plotByte2.Visibility = Visibility.Collapsed;
                 var lineSeriesByte2 = new LineSeries();
+                var trendLineSeries2 = new LineSeries();
                 for (int i = 0; i < massByte2.Count; i++)
                 {
                     lineSeriesByte2.Points.Add(new DataPoint(i, massByte2[i]));
+                    trendLineSeries2.Points.Add(new DataPoint(i, smoothedMassByte2[i]));
                 }
+                smoothDistinct = smoothedMassByte2.Distinct().ToList();
+                trendLineSeries2.IsVisible = smoothDistinct.Count == 1 ? false : true;
                 lineSeriesByte2.Color = OxyColors.Blue;
+                trendLineSeries2.Color = OxyColors.Red;
+                trendLineSeries2.InterpolationAlgorithm = InterpolationAlgorithms.CanonicalSpline;
                 lineSeriesByte2.StrokeThickness = 0.5;
                 this.ModelByte2 = new PlotModel { Title = "2" };
                 this.ModelByte2.Series.Add(lineSeriesByte2);
+                this.ModelByte2.Series.Add(trendLineSeries2);
                 plotByte2.Visibility = Visibility.Visible;
 
                 plotByte2.Model = ModelByte2;
@@ -793,14 +857,21 @@ namespace InterraCAN
                 #region chart3
                 plotByte3.Visibility = Visibility.Collapsed;
                 var lineSeriesByte3 = new LineSeries();
+                var trendLineSeries3 = new LineSeries();
                 for (int i = 0; i < massByte3.Count; i++)
                 {
                     lineSeriesByte3.Points.Add(new DataPoint(i, massByte3[i]));
+                    trendLineSeries3.Points.Add(new DataPoint(i, smoothedMassByte3[i]));
                 }
+                smoothDistinct = smoothedMassByte3.Distinct().ToList();
+                trendLineSeries3.IsVisible = smoothDistinct.Count == 1 ? false : true;
                 lineSeriesByte3.Color = OxyColors.Blue;
+                trendLineSeries3.Color = OxyColors.Red;
+                trendLineSeries3.InterpolationAlgorithm = InterpolationAlgorithms.CanonicalSpline;
                 lineSeriesByte3.StrokeThickness = 0.5;
                 this.ModelByte3 = new PlotModel { Title = "3" };
                 this.ModelByte3.Series.Add(lineSeriesByte3);
+                this.ModelByte3.Series.Add(trendLineSeries3);
                 plotByte3.Visibility = Visibility.Visible;
 
                 plotByte3.Model = ModelByte3;
@@ -845,14 +916,21 @@ namespace InterraCAN
                 #region chart4
                 plotByte4.Visibility = Visibility.Collapsed;
                 var lineSeriesByte4 = new LineSeries();
+                var trendLineSeries4 = new LineSeries();
                 for (int i = 0; i < massByte4.Count; i++)
                 {
                     lineSeriesByte4.Points.Add(new DataPoint(i, massByte4[i]));
+                    trendLineSeries4.Points.Add(new DataPoint(i, smoothedMassByte4[i]));
                 }
+                smoothDistinct = smoothedMassByte4.Distinct().ToList();
+                trendLineSeries4.IsVisible = smoothDistinct.Count == 1 ? false : true;
+                trendLineSeries4.Color = OxyColors.Red;
                 lineSeriesByte4.Color = OxyColors.Blue;
+                trendLineSeries4.InterpolationAlgorithm = InterpolationAlgorithms.CanonicalSpline;
                 lineSeriesByte4.StrokeThickness = 0.5;
                 this.ModelByte4 = new PlotModel { Title = "4" };
                 this.ModelByte4.Series.Add(lineSeriesByte4);
+                this.ModelByte4.Series.Add(trendLineSeries4);
                 plotByte4.Visibility = Visibility.Visible;
 
                 plotByte4.Model = ModelByte4;
@@ -897,14 +975,21 @@ namespace InterraCAN
                 #region chart5
                 plotByte5.Visibility = Visibility.Collapsed;
                 var lineSeriesByte5 = new LineSeries();
+                var trendLineSeries5 = new LineSeries();
                 for (int i = 0; i < massByte5.Count; i++)
                 {
                     lineSeriesByte5.Points.Add(new DataPoint(i, massByte5[i]));
+                    trendLineSeries5.Points.Add(new DataPoint(i, smoothedMassByte5[i]));
                 }
+                smoothDistinct = smoothedMassByte5.Distinct().ToList();
+                trendLineSeries5.IsVisible = smoothDistinct.Count == 1 ? false : true;
                 lineSeriesByte5.Color = OxyColors.Blue;
+                trendLineSeries5.Color = OxyColors.Red;
+                trendLineSeries5.InterpolationAlgorithm = InterpolationAlgorithms.CanonicalSpline;
                 lineSeriesByte5.StrokeThickness = 0.5;
                 this.ModelByte5 = new PlotModel { Title = "5" };
                 this.ModelByte5.Series.Add(lineSeriesByte5);
+                this.ModelByte5.Series.Add(trendLineSeries5);
                 plotByte5.Visibility = Visibility.Visible;
 
                 plotByte5.Model = ModelByte5;
@@ -949,14 +1034,21 @@ namespace InterraCAN
                 #region chart6
                 plotByte6.Visibility = Visibility.Collapsed;
                 var lineSeriesByte6 = new LineSeries();
+                var trendLineSeries6 = new LineSeries();
                 for (int i = 0; i < massByte6.Count; i++)
                 {
                     lineSeriesByte6.Points.Add(new DataPoint(i, massByte6[i]));
+                    trendLineSeries6.Points.Add(new DataPoint(i, smoothedMassByte6[i]));
                 }
+                smoothDistinct = smoothedMassByte6.Distinct().ToList();
+                trendLineSeries6.IsVisible = smoothDistinct.Count == 1 ? false : true;
                 lineSeriesByte6.Color = OxyColors.Blue;
+                trendLineSeries6.Color = OxyColors.Red;
+                trendLineSeries6.InterpolationAlgorithm = InterpolationAlgorithms.CanonicalSpline;
                 lineSeriesByte6.StrokeThickness = 0.5;
                 this.ModelByte6 = new PlotModel { Title = "6" };
                 this.ModelByte6.Series.Add(lineSeriesByte6);
+                this.ModelByte6.Series.Add(trendLineSeries6);
                 plotByte6.Visibility = Visibility.Visible;
 
                 plotByte6.Model = ModelByte6;
@@ -1001,14 +1093,21 @@ namespace InterraCAN
                 #region chart7
                 plotByte7.Visibility = Visibility.Collapsed;
                 var lineSeriesByte7 = new LineSeries();
+                var trendLineSeries7 = new LineSeries();
                 for (int i = 0; i < massByte7.Count; i++)
                 {
                     lineSeriesByte7.Points.Add(new DataPoint(i, massByte7[i]));
+                    trendLineSeries7.Points.Add(new DataPoint(i, smoothedMassByte7[i]));
                 }
+                smoothDistinct = smoothedMassByte7.Distinct().ToList();
+                trendLineSeries7.IsVisible = smoothDistinct.Count == 1 ? false : true;
                 lineSeriesByte7.Color = OxyColors.Blue;
+                trendLineSeries7.Color = OxyColors.Red;
+                trendLineSeries7.InterpolationAlgorithm = InterpolationAlgorithms.CanonicalSpline;
                 lineSeriesByte7.StrokeThickness = 0.5;
                 this.ModelByte7 = new PlotModel { Title = "7" };
                 this.ModelByte7.Series.Add(lineSeriesByte7);
+                this.ModelByte7.Series.Add(trendLineSeries7);
                 plotByte7.Visibility = Visibility.Visible;
 
                 plotByte7.Model = ModelByte7;
@@ -1053,14 +1152,21 @@ namespace InterraCAN
                 #region chart01LE
                 plotByte01LE.Visibility = Visibility.Collapsed;
                 var lineSeriesByte01LE = new LineSeries();
+                var trendLineSeries01 = new LineSeries();
                 for (int i = 0; i < massByte01LE.Count; i++)
                 {
                     lineSeriesByte01LE.Points.Add(new DataPoint(i, massByte01LE[i]));
+                    trendLineSeries01.Points.Add(new DataPoint(i, smoothedMassByte01[i]));
                 }
+                smoothDistinct = smoothedMassByte01.Distinct().ToList();
+                trendLineSeries01.IsVisible = smoothDistinct.Count == 1 ? false : true;
+                trendLineSeries01.Color = OxyColors.Red;
+                trendLineSeries01.InterpolationAlgorithm = InterpolationAlgorithms.CanonicalSpline;
                 lineSeriesByte01LE.Color = OxyColors.Blue;
                 lineSeriesByte01LE.StrokeThickness = 0.5;
                 this.ModelByte01LE = new PlotModel { Title = "0+1" };
                 this.ModelByte01LE.Series.Add(lineSeriesByte01LE);
+                this.ModelByte01LE.Series.Add(trendLineSeries01);
                 plotByte01LE.Visibility = Visibility.Visible;
 
                 plotByte01LE.Model = ModelByte01LE;
@@ -1105,14 +1211,21 @@ namespace InterraCAN
                 #region chart23LE
                 plotByte23LE.Visibility = Visibility.Collapsed;
                 var lineSeriesByte23LE = new LineSeries();
+                var trendLineSeries23 = new LineSeries();
                 for (int i = 0; i < massByte23LE.Count; i++)
                 {
                     lineSeriesByte23LE.Points.Add(new DataPoint(i, massByte23LE[i]));
+                    trendLineSeries23.Points.Add(new DataPoint(i, smoothedMassByte23[i]));
                 }
+                smoothDistinct = smoothedMassByte23.Distinct().ToList();
+                trendLineSeries23.IsVisible = smoothDistinct.Count == 1 ? false : true;
+                trendLineSeries23.Color = OxyColors.Red;
+                trendLineSeries23.InterpolationAlgorithm = InterpolationAlgorithms.CanonicalSpline;
                 lineSeriesByte23LE.Color = OxyColors.Blue;
                 lineSeriesByte23LE.StrokeThickness = 0.5;
                 this.ModelByte23LE = new PlotModel { Title = "2+3" };
                 this.ModelByte23LE.Series.Add(lineSeriesByte23LE);
+                this.ModelByte23LE.Series.Add(trendLineSeries23);
                 plotByte23LE.Visibility = Visibility.Visible;
 
                 plotByte23LE.Model = ModelByte23LE;
@@ -1157,14 +1270,21 @@ namespace InterraCAN
                 #region chart45LE
                 plotByte45LE.Visibility = Visibility.Collapsed;
                 var lineSeriesByte45LE = new LineSeries();
+                var trendLineSeries45 = new LineSeries();
                 for (int i = 0; i < massByte45LE.Count; i++)
                 {
                     lineSeriesByte45LE.Points.Add(new DataPoint(i, massByte45LE[i]));
+                    trendLineSeries45.Points.Add(new DataPoint(i, smoothedMassByte45[i]));
                 }
+                smoothDistinct = smoothedMassByte45.Distinct().ToList();
+                trendLineSeries45.IsVisible = smoothDistinct.Count == 1 ? false : true;
+                trendLineSeries45.Color = OxyColors.Red;
+                trendLineSeries45.InterpolationAlgorithm = InterpolationAlgorithms.CanonicalSpline;
                 lineSeriesByte45LE.Color = OxyColors.Blue;
                 lineSeriesByte45LE.StrokeThickness = 0.5;
                 this.ModelByte45LE = new PlotModel { Title = "4+5" };
                 this.ModelByte45LE.Series.Add(lineSeriesByte45LE);
+                this.ModelByte45LE.Series.Add(trendLineSeries45);
                 plotByte45LE.Visibility = Visibility.Visible;
 
                 plotByte45LE.Model = ModelByte45LE;
@@ -1209,14 +1329,21 @@ namespace InterraCAN
                 #region chart67LE
                 plotByte67LE.Visibility = Visibility.Collapsed;
                 var lineSeriesByte67LE = new LineSeries();
+                var trendLineSeries67 = new LineSeries();
                 for (int i = 0; i < massByte67LE.Count; i++)
                 {
                     lineSeriesByte67LE.Points.Add(new DataPoint(i, massByte67LE[i]));
+                    trendLineSeries67.Points.Add(new DataPoint(i, smoothedMassByte67[i]));
                 }
+                smoothDistinct = smoothedMassByte67.Distinct().ToList();
+                trendLineSeries67.IsVisible = smoothDistinct.Count == 1 ? false : true;
+                trendLineSeries67.Color = OxyColors.Red;
+                trendLineSeries67.InterpolationAlgorithm = InterpolationAlgorithms.CanonicalSpline;
                 lineSeriesByte67LE.Color = OxyColors.Blue;
                 lineSeriesByte67LE.StrokeThickness = 0.5;
                 this.ModelByte67LE = new PlotModel { Title = "6+7" };
                 this.ModelByte67LE.Series.Add(lineSeriesByte67LE);
+                this.ModelByte67LE.Series.Add(trendLineSeries67);
                 plotByte67LE.Visibility = Visibility.Visible;
 
                 plotByte67LE.Model = ModelByte67LE;
@@ -1261,14 +1388,21 @@ namespace InterraCAN
                 #region chart10BE
                 plotByte10BE.Visibility = Visibility.Collapsed;
                 var lineSeriesByte10BE = new LineSeries();
+                var trendLineSeries10 = new LineSeries();
                 for (int i = 0; i < massByte10BE.Count; i++)
                 {
                     lineSeriesByte10BE.Points.Add(new DataPoint(i, massByte10BE[i]));
+                    trendLineSeries10.Points.Add(new DataPoint(i, smoothedMassByte10[i]));
                 }
+                smoothDistinct = smoothedMassByte10.Distinct().ToList();
+                trendLineSeries10.IsVisible = smoothDistinct.Count == 1 ? false : true;
+                trendLineSeries10.Color = OxyColors.Red;
+                trendLineSeries10.InterpolationAlgorithm = InterpolationAlgorithms.CanonicalSpline;
                 lineSeriesByte10BE.Color = OxyColors.Blue;
                 lineSeriesByte10BE.StrokeThickness = 0.5;
                 this.ModelByte10BE = new PlotModel { Title = "1+0" };
                 this.ModelByte10BE.Series.Add(lineSeriesByte10BE);
+                this.ModelByte10BE.Series.Add(trendLineSeries10);
                 plotByte10BE.Visibility = Visibility.Visible;
 
                 plotByte10BE.Model = ModelByte10BE;
@@ -1313,14 +1447,21 @@ namespace InterraCAN
                 #region chart32BE
                 plotByte32BE.Visibility = Visibility.Collapsed;
                 var lineSeriesByte32BE = new LineSeries();
+                var trendLineSeries32 = new LineSeries();
                 for (int i = 0; i < massByte32BE.Count; i++)
                 {
                     lineSeriesByte32BE.Points.Add(new DataPoint(i, massByte32BE[i]));
+                    trendLineSeries32.Points.Add(new DataPoint(i, smoothedMassByte32[i]));
                 }
+                smoothDistinct = smoothedMassByte32.Distinct().ToList();
+                trendLineSeries32.IsVisible = smoothDistinct.Count == 1 ? false : true;
+                trendLineSeries32.Color = OxyColors.Red;
+                trendLineSeries32.InterpolationAlgorithm = InterpolationAlgorithms.CanonicalSpline;
                 lineSeriesByte32BE.Color = OxyColors.Blue;
                 lineSeriesByte32BE.StrokeThickness = 0.5;
                 this.ModelByte32BE = new PlotModel { Title = "3+2" };
                 this.ModelByte32BE.Series.Add(lineSeriesByte32BE);
+                this.ModelByte32BE.Series.Add(trendLineSeries32);
                 plotByte32BE.Visibility = Visibility.Visible;
 
                 plotByte32BE.Model = ModelByte32BE;
@@ -1365,14 +1506,21 @@ namespace InterraCAN
                 #region chart54BE
                 plotByte54BE.Visibility = Visibility.Collapsed;
                 var lineSeriesByte54BE = new LineSeries();
+                var trendLineSeries54 = new LineSeries();
                 for (int i = 0; i < massByte54BE.Count; i++)
                 {
                     lineSeriesByte54BE.Points.Add(new DataPoint(i, massByte54BE[i]));
+                    trendLineSeries54.Points.Add(new DataPoint(i, smoothedMassByte54[i]));
                 }
+                smoothDistinct = smoothedMassByte54.Distinct().ToList();
+                trendLineSeries54.IsVisible = smoothDistinct.Count == 1 ? false : true;
+                trendLineSeries54.Color = OxyColors.Red;
+                trendLineSeries54.InterpolationAlgorithm = InterpolationAlgorithms.CanonicalSpline;
                 lineSeriesByte54BE.Color = OxyColors.Blue;
                 lineSeriesByte54BE.StrokeThickness = 0.5;
                 this.ModelByte54BE = new PlotModel { Title = "5+4" };
                 this.ModelByte54BE.Series.Add(lineSeriesByte54BE);
+                this.ModelByte54BE.Series.Add(trendLineSeries54);
                 plotByte54BE.Visibility = Visibility.Visible;
 
                 plotByte54BE.Model = ModelByte54BE;
@@ -1417,14 +1565,21 @@ namespace InterraCAN
                 #region chart76BE
                 plotByte76BE.Visibility = Visibility.Collapsed;
                 var lineSeriesByte76BE = new LineSeries();
+                var trendLineSeries76 = new LineSeries();
                 for (int i = 0; i < massByte76BE.Count; i++)
                 {
                     lineSeriesByte76BE.Points.Add(new DataPoint(i, massByte76BE[i]));
+                    trendLineSeries76.Points.Add(new DataPoint(i, smoothedMassByte76[i]));
                 }
+                smoothDistinct = smoothedMassByte76.Distinct().ToList();
+                trendLineSeries76.IsVisible = smoothDistinct.Count == 1 ? false : true;
+                trendLineSeries76.Color = OxyColors.Red;
+                trendLineSeries76.InterpolationAlgorithm = InterpolationAlgorithms.CanonicalSpline;
                 lineSeriesByte76BE.Color = OxyColors.Blue;
                 lineSeriesByte76BE.StrokeThickness = 0.5;
                 this.ModelByte76BE = new PlotModel { Title = "7+6" };
                 this.ModelByte76BE.Series.Add(lineSeriesByte76BE);
+                this.ModelByte76BE.Series.Add(trendLineSeries76);
                 plotByte76BE.Visibility = Visibility.Visible;
 
                 plotByte76BE.Model = ModelByte76BE;
@@ -1468,7 +1623,19 @@ namespace InterraCAN
 
                 };
                 #endregion
+                if (CB_FilterAllCharts.SelectedIndex <= 0 || Convert.ToInt32(string.Concat(CB_FilterAllCharts.SelectedItem.ToString().Where(Char.IsDigit))) > massByte0.Count)
+                {
+                    trendLineSeries0.IsVisible = false; trendLineSeries01.IsVisible = false;
+                    trendLineSeries1.IsVisible = false; trendLineSeries23.IsVisible = false;
+                    trendLineSeries2.IsVisible = false; trendLineSeries45.IsVisible = false;
+                    trendLineSeries3.IsVisible = false; trendLineSeries67.IsVisible = false;
+                    trendLineSeries4.IsVisible = false; trendLineSeries10.IsVisible = false;
+                    trendLineSeries5.IsVisible = false; trendLineSeries32.IsVisible = false;
+                    trendLineSeries6.IsVisible = false; trendLineSeries54.IsVisible = false;
+                    trendLineSeries7.IsVisible = false; trendLineSeries76.IsVisible = false;
+                }
             }
+
             //заполнение ListBox
             if (_selectedID != null)
             {
@@ -1507,16 +1674,19 @@ namespace InterraCAN
             BtnReadFile.IsEnabled = true;
         }
         //в зависимости от выбора вклади перерисовывает страницу
+
         private void TabControl_Analize_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-
+            // TODO
+            // если не выбрано что-то (пустой файл)
             if (Tab_Msg.IsSelected == true)
             {
                 plotByte0.TrackerDefinitions.Clear();
             }
 
-            if (TabItemOneByte.IsSelected == true && LB_Uniq.SelectedItem != null)
+            if (TabItemOneByte.IsSelected == true && LB_Uniq.SelectedItem != null || CB_FilterAllCharts.SelectedIndex > 1)
             {
+                plotByte0.TrackerDefinitions.Clear();
                 _comboBoxValues.Clear();
                 if (CB_FilterOneByte.SelectedIndex > 0)
                 {
@@ -1561,15 +1731,15 @@ namespace InterraCAN
                 string msgId = (string)LB_Uniq.SelectedItem;
                 LB_Uniq.SelectedIndex = -1;
                 LB_Uniq.SelectedItem = msgId;
-                if (LabelOneByte.Content != null)
-                {
-                    CB_FilterOneByte.SelectedItem = LabelOneByte.Content.ToString();
-                    if (CB_FilterOneByte.SelectedItem != null)
-                    {
-                        _itemByte0Selected = CB_FilterOneByte.SelectedItem.ToString();
-                    }
-                }
-                LabelOneByte.Visibility = Visibility.Hidden;
+                //if (LabelOneByte.Content != null)
+                //{
+                //    CB_FilterOneByte.SelectedItem = LabelOneByte.Content.ToString();
+                //    if (CB_FilterOneByte.SelectedItem != null)
+                //    {
+                //        _itemByte0Selected = CB_FilterOneByte.SelectedItem.ToString();
+                //    }
+                //}
+                //LabelOneByte.Visibility = Visibility.Hidden;
 
             }
             if (Tab2xBE.IsSelected == true && LB_Uniq.SelectedItem != null)
@@ -1577,15 +1747,15 @@ namespace InterraCAN
                 string msgId = (string)LB_Uniq.SelectedItem;
                 LB_Uniq.SelectedIndex = -1;
                 LB_Uniq.SelectedItem = msgId;
-                if (LabelOneByte.Content != null)
-                {
-                    CB_FilterOneByte.SelectedItem = LabelOneByte.Content.ToString();
-                    if (CB_FilterOneByte.SelectedItem != null)
-                    {
-                        _itemByte0Selected = CB_FilterOneByte.SelectedItem.ToString();
-                    }
-                }
-                LabelOneByte.Visibility = Visibility.Hidden;
+                //if (LabelOneByte.Content != null)
+                //{
+                //    CB_FilterOneByte.SelectedItem = LabelOneByte.Content.ToString();
+                //    if (CB_FilterOneByte.SelectedItem != null)
+                //    {
+                //        _itemByte0Selected = CB_FilterOneByte.SelectedItem.ToString();
+                //    }
+                //}
+                //LabelOneByte.Visibility = Visibility.Hidden;
             }
         }
 
@@ -1595,6 +1765,12 @@ namespace InterraCAN
         }
         //добавление комментариев, выделение интересным/неинтересном адрес
         #region commits methods
+        Brush _greenColor = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#8BC58B"));
+        Brush _redColor = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF9999"));
+        Brush _defaultColor = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00FFFFFF"));
+        //Color _greenColor = (Color)ColorConverter.ConvertFromString("#99FF99");
+        //Color _redColor = (Color)ColorConverter.ConvertFromString("#FF6666");
+        //Color _defaultColor = (Color)ColorConverter.ConvertFromString("#00FFFFFF");
         private void MenuItemGreen_Click(object sender, RoutedEventArgs e)
         {
 
@@ -1604,7 +1780,7 @@ namespace InterraCAN
                 LB_Uniq = _markedUniqId;
             }
             ListBoxItem lbi = (ListBoxItem)_markedUniqId.ItemContainerGenerator.ContainerFromIndex(index);
-            lbi.Foreground = Brushes.Green;
+            lbi.Background = _greenColor;
             _greenIndex.Add(index);
 
             LB_Uniq = _markedUniqId;
@@ -1618,7 +1794,7 @@ namespace InterraCAN
                 LB_Uniq = _markedUniqId;
             }
             ListBoxItem lbi = (ListBoxItem)_markedUniqId.ItemContainerGenerator.ContainerFromIndex(index);
-            lbi.Foreground = Brushes.Red;
+            lbi.Background = _redColor;
             _redIndex.Add(index);
             LB_Uniq = _markedUniqId;
         }
@@ -1631,7 +1807,8 @@ namespace InterraCAN
                 LB_Uniq = _markedUniqId;
             }
             ListBoxItem lbi = (ListBoxItem)_markedUniqId.ItemContainerGenerator.ContainerFromIndex(index);
-            lbi.Foreground = Brushes.Black;
+            //lbi.Background = Brushes.Black;
+            lbi.Background = _defaultColor;
             if (_greenIndex.Contains(index))
             {
                 _greenIndex.Remove(index);
@@ -1662,7 +1839,7 @@ namespace InterraCAN
 
 
 
-                if (lbi.Foreground == Brushes.Red)
+                if (lbi.Background == _redColor)
                 {
                     lbi.Visibility = Visibility.Collapsed;
                 }
@@ -1694,7 +1871,61 @@ namespace InterraCAN
             }
             LB_Uniq.ScrollIntoView(LB_Uniq.Items[0]);
         }
+        public void ViewItems()
+        {
+            if (Tab_Charts.IsSelected == true)
+            {
+                bool redCheck = CheckRed.IsChecked == true ? true : false;
+                bool greenCheck = CheckGreen.IsChecked == true ? true : false;
+                bool standartCheck = CheckDefault.IsChecked == true ? true : false;
 
+                for (int i = 0; i < LB_Uniq.Items.Count; i++)
+                {
+                    ListBoxItem lbi = (ListBoxItem)_markedUniqId.ItemContainerGenerator.ContainerFromIndex(i);
+                    if (lbi == null)
+                    {
+                        LB_Uniq.UpdateLayout();
+                        LB_Uniq.ScrollIntoView(LB_Uniq.Items[i]);
+                        lbi = (ListBoxItem)_markedUniqId.ItemContainerGenerator.ContainerFromIndex(i);
+                    }
+                    if (lbi.Background == _redColor)
+                    {
+                        if (redCheck == true)
+                        {
+                            lbi.Visibility = Visibility.Visible;
+                        }
+                        else
+                        {
+                            lbi.Visibility = Visibility.Collapsed;
+                        }
+                    }
+                    if (lbi.Background == _greenColor)
+                    {
+                        if (greenCheck == true)
+                        {
+                            lbi.Visibility = Visibility.Visible;
+                        }
+                        else
+                        {
+                            lbi.Visibility = Visibility.Collapsed;
+                        }
+                    }
+                    if (lbi.Background.ToString() == "#00FFFFFF")
+                    {
+                        if (standartCheck == true)
+                        {
+                            lbi.Visibility = Visibility.Visible;
+                        }
+                        else
+                        {
+                            lbi.Visibility = Visibility.Collapsed;
+                        }
+                    }
+                    LB_Uniq = _markedUniqId;
+                }
+                LB_Uniq.ScrollIntoView(LB_Uniq.Items[0]);
+            }
+        }
         private void MenuItemShowGreenItems_Click(object sender, RoutedEventArgs e)
         {
             for (int i = 0; i < LB_Uniq.Items.Count; i++)
@@ -1707,7 +1938,7 @@ namespace InterraCAN
                     LB_Uniq.ScrollIntoView(LB_Uniq.Items[i]);
                     lbi = (ListBoxItem)_markedUniqId.ItemContainerGenerator.ContainerFromIndex(i);
                 }
-                if (lbi.Foreground != Brushes.Green)
+                if (lbi.Foreground != _greenColor)
                 {
                     lbi.Visibility = Visibility.Collapsed;
                 }
@@ -1720,6 +1951,8 @@ namespace InterraCAN
         //сохранение комментарниев и выделение в отдельный файл для дальнейшего импорта
         private void BtnSaveToFile_Click(object sender, RoutedEventArgs e)
         {
+            // TODO
+            // поменять txt на json
             string docPath = _currentFile.FileName + "_commits.txt";
 
             List<string> textLines = new List<string>();
@@ -1739,15 +1972,15 @@ namespace InterraCAN
                         LB_Uniq.ScrollIntoView(LB_Uniq.Items[i]);
                         lbi = (ListBoxItem)_markedUniqId.ItemContainerGenerator.ContainerFromIndex(i);
                     }
-                    if (lbi.Foreground == Brushes.Green || lbi.Foreground == Brushes.Red || lbi.Visibility == Visibility.Collapsed || _commits.ContainsKey(i))
+                    if (lbi.Background == _greenColor || lbi.Background == _redColor || lbi.Visibility == Visibility.Collapsed || _commits.ContainsKey(i))
                     {
                         if (_commits.ContainsKey(i) == true)
                         {
-                            textLines.Add(LB_Uniq.Items[i] + "|" + lbi.Foreground.ToString() + "|" + lbi.Visibility + "|" + _commits[i]);
+                            textLines.Add(LB_Uniq.Items[i] + "|" + lbi.Background.ToString() + "|" + lbi.Visibility + "|" + _commits[i]);
                         }
                         else
                         {
-                            textLines.Add(LB_Uniq.Items[i] + "|" + lbi.Foreground.ToString() + "|" + lbi.Visibility);
+                            textLines.Add(LB_Uniq.Items[i] + "|" + lbi.Background.ToString() + "|" + lbi.Visibility);
                         }
                     }
 
@@ -1769,6 +2002,9 @@ namespace InterraCAN
             LB_Uniq.ScrollIntoView(LB_Uniq.Items[0]);
         }
         //импортировать файл в программу, п.у. пробуем автоматически, если находит
+        //"#99FF99"
+        //"#FF6666"
+        //"#00FFFFFF"
         private void BtnReadFile_Click(object sender, RoutedEventArgs e)
         {
             string files;
@@ -1778,11 +2014,11 @@ namespace InterraCAN
             }
             catch (Exception)
             {
-
+                LB_Result.Items.Add("файл для импорта комментариев и выделенных адресов не найден.");
                 return;
             }
 
-            if (files != null && files != "")
+            if (files != null && files != "" && _commits.Count == 0)
             {
                 List<string> words = new List<string>();
                 words = files.Split('\n').ToList();
@@ -1800,6 +2036,13 @@ namespace InterraCAN
                     {
                         int index = words[0].IndexOf("|");
                         string word = words[0].Remove(index);
+                        if (LB_Uniq.Items.Contains(word) == false)
+                        {
+                            words.RemoveAt(0);
+                            i = 0;
+                            index = words[0].IndexOf("|");
+                            word = words[0].Remove(index);
+                        }
                         if (LB_Uniq.Items[i].ToString() == word)
                         {
                             List<string> strings = new List<string>();
@@ -1811,13 +2054,13 @@ namespace InterraCAN
                                 LB_Uniq.ScrollIntoView(LB_Uniq.Items[i]);
                                 lbi = (ListBoxItem)LB_Uniq.ItemContainerGenerator.ContainerFromIndex(i);
                             }
-                            if (strings[1] == "#FF008000")
+                            if (strings[1] == "#FF8BC58B")
                             {
-                                lbi.Foreground = Brushes.Green;
+                                lbi.Background = _greenColor;
                             }
-                            else if (strings[1] == "#FFFF0000")
+                            else if (strings[1] == "#FFFF9999")
                             {
-                                lbi.Foreground = Brushes.Red;
+                                lbi.Background = _redColor;
                             }
                             if (strings[2] == "Visible")
                             {
@@ -1829,6 +2072,11 @@ namespace InterraCAN
                             }
                             if (strings.Count == 4)
                             {
+                                lbi.FontWeight = strings[3] == "" ? System.Windows.FontWeights.Normal : System.Windows.FontWeights.Bold;
+                                if (_commits.ContainsKey(i))
+                                {
+                                    _commits.Remove(i);
+                                }
                                 _commits.Add(i, strings[3]);
                             }
                             words.RemoveAt(0);
@@ -1837,8 +2085,9 @@ namespace InterraCAN
                         }
                     }
                 }
+                LB_Result.Items.Add("файл комментариев и выделенных адресов успешно обработан.");
             }
-            else
+            else if (BtnReadFile.IsMouseOver == true)
             {
                 if (BtnReadFile.IsEnabled == true)
                 {
@@ -1877,13 +2126,13 @@ namespace InterraCAN
                                         LB_Uniq.ScrollIntoView(LB_Uniq.Items[i]);
                                         lbi = (ListBoxItem)LB_Uniq.ItemContainerGenerator.ContainerFromIndex(i);
                                     }
-                                    if (strings[1] == "#FF008000")
+                                    if (strings[1] == "#FF8BC58B")
                                     {
-                                        lbi.Foreground = Brushes.Green;
+                                        lbi.Background = _greenColor;
                                     }
-                                    else if (strings[1] == "#FFFF0000")
+                                    else if (strings[1] == "#FFFF9999")
                                     {
-                                        lbi.Foreground = Brushes.Red;
+                                        lbi.Background = _redColor;
                                     }
                                     if (strings[2] == "Visible")
                                     {
@@ -1895,7 +2144,12 @@ namespace InterraCAN
                                     }
                                     if (strings.Count == 4)
                                     {
+                                        if (_commits.ContainsKey(i))
+                                        {
+                                            _commits.Remove(i);
+                                        }
                                         _commits.Add(i, strings[3]);
+                                        lbi.FontWeight = strings[3] == "" ? System.Windows.FontWeights.Normal : System.Windows.FontWeights.Bold;
                                     }
                                     words.RemoveAt(0);
 
@@ -1905,6 +2159,7 @@ namespace InterraCAN
                         }
 
                     }
+                    LB_Result.Items.Add("файл комментариев и выделенных адресов успешно обработан.");
                 }
             }
         }
@@ -1918,7 +2173,7 @@ namespace InterraCAN
                     ListBoxItem lbi = (ListBoxItem)LB_Uniq.ItemContainerGenerator.ContainerFromIndex(_greenIndex[i]);
                     if (lbi != null)
                     {
-                        lbi.Foreground = Brushes.Green;
+                        lbi.Background = _greenColor;
                     }
                 }
                 for (int i = 0; i < _redIndex.Count; i++)
@@ -1926,7 +2181,7 @@ namespace InterraCAN
                     ListBoxItem lbi = (ListBoxItem)LB_Uniq.ItemContainerGenerator.ContainerFromIndex(_redIndex[i]);
                     if (lbi != null)
                     {
-                        lbi.Foreground = Brushes.Red;
+                        lbi.Background = _redColor;
                     }
                 }
                 LB_Uniq = _markedUniqId;
@@ -1942,7 +2197,7 @@ namespace InterraCAN
                     ListBoxItem lbi = (ListBoxItem)LB_Uniq.ItemContainerGenerator.ContainerFromIndex(_greenIndex[i]);
                     if (lbi != null)
                     {
-                        lbi.Foreground = Brushes.Green;
+                        lbi.Background = _greenColor;
                     }
                 }
                 for (int i = 0; i < _redIndex.Count; i++)
@@ -1950,7 +2205,7 @@ namespace InterraCAN
                     ListBoxItem lbi = (ListBoxItem)LB_Uniq.ItemContainerGenerator.ContainerFromIndex(_redIndex[i]);
                     if (lbi != null)
                     {
-                        lbi.Foreground = Brushes.Red;
+                        lbi.Background = _redColor;
                     }
                 }
                 LB_Uniq = _markedUniqId;
@@ -1985,8 +2240,22 @@ namespace InterraCAN
 
         private void BtnSaveCommit(object sender, RoutedEventArgs e)
         {
+            if (_flagEvent == true)
+            {
+                if (_commits.ContainsKey(EventId))
+                {
+                    _commits.Remove(EventId);
+                }
+                _commits.Add(EventId, TB_Commit.Text);
+                _flagEvent = false;
+                myPopup.IsOpen = false;
+                int index = LB_Uniq.SelectedIndex;
+                ListBoxItem lbi = (ListBoxItem)_markedUniqId.ItemContainerGenerator.ContainerFromIndex(index);
 
-            if (TB_Commit.Text != null && TB_Commit.Text != string.Empty)
+                lbi.FontWeight = TB_Commit.Text == "" ? System.Windows.FontWeights.Normal : System.Windows.FontWeights.Bold;
+                //System.Windows.FontWeights.Bold;
+            }
+            else
             {
                 if (_commits.ContainsKey(LB_Uniq.SelectedIndex))
                 {
@@ -1996,10 +2265,9 @@ namespace InterraCAN
                 MenuItemAddCommit.Visibility = Visibility.Collapsed;
                 MenuItemEditCommit.Visibility = Visibility.Visible;
                 myPopup.IsOpen = false;
-            }
-            else
-            {
-                MessageBox.Show("Нечего сохранять");
+                int index = LB_Uniq.SelectedIndex;
+                ListBoxItem lbi = (ListBoxItem)_markedUniqId.ItemContainerGenerator.ContainerFromIndex(index);
+                lbi.FontWeight = TB_Commit.Text == "" ? System.Windows.FontWeights.Normal : System.Windows.FontWeights.Bold;
             }
         }
         private void BtnCommitCancel(object sender, RoutedEventArgs e)
@@ -2043,13 +2311,16 @@ namespace InterraCAN
             var MyIni = new IniFiles("Settings.ini");
             var ReadFile = MyIni.ReadINI("InterraCAN", "ReadFile");
             string files;
+            // TODO
+            // создавать файл ini автоматически?
             try
             {
                 files = System.IO.File.ReadAllText(ReadFile);
             }
             catch (Exception)
             {
-                MessageBox.Show("Файл " + ReadFile + " не был найден.");
+                //MessageBox.Show("Файл " + ReadFile + " не был найден.");
+                LB_Result.Items.Add("файл prm не был найден.");
                 return;
             }
             List<string> words = files.Split("Адрес").ToList();
@@ -2125,7 +2396,8 @@ namespace InterraCAN
                             {
                                 if (stringByte.Length > 1)
                                 {
-
+                                    // TODO
+                                    // поменять ковертацию
                                     _dictForCommitsPMR[IdAdress][j] = _dictForCommitsPMR[IdAdress][j].Replace("�����", "байты");
                                     int byte1 = Convert.ToInt32(stringByte.Substring(0, 1)) - 1;
                                     int byte2 = Convert.ToInt32(stringByte.Substring(1, 1)) - 1;
@@ -2158,14 +2430,9 @@ namespace InterraCAN
                                                 if (IdPath != "")
                                                 {
                                                     IdAdress = IdAdress + IdPath;
-                                                    _dictForCommitsPMR[IdAdress].RemoveAt(j);
-                                                    j--;
                                                 }
-                                                else
-                                                {
-                                                    _dictForCommitsPMR[IdAdress].RemoveAt(j);
-                                                    j--;
-                                                }
+                                                _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                                j--;
                                             }
                                         }
                                         else
@@ -2173,14 +2440,9 @@ namespace InterraCAN
                                             if (IdPath != "")
                                             {
                                                 IdAdress = IdAdress + IdPath;
-                                                _dictForCommitsPMR[IdAdress].RemoveAt(j);
-                                                j--;
                                             }
-                                            else
-                                            {
-                                                _dictForCommitsPMR[IdAdress].RemoveAt(j);
-                                                j--;
-                                            }
+                                            _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                            j--;
                                         }
                                     }
                                 }
@@ -2213,14 +2475,9 @@ namespace InterraCAN
                                                 if (IdPath != "")
                                                 {
                                                     IdAdress = IdAdress + IdPath;
-                                                    _dictForCommitsPMR[IdAdress].RemoveAt(j);
-                                                    j--;
                                                 }
-                                                else
-                                                {
-                                                    _dictForCommitsPMR[IdAdress].RemoveAt(j);
-                                                    j--;
-                                                }
+                                                _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                                j--;
                                             }
                                         }
                                         else
@@ -2228,14 +2485,9 @@ namespace InterraCAN
                                             if (IdPath != "")
                                             {
                                                 IdAdress = IdAdress + IdPath;
-                                                _dictForCommitsPMR[IdAdress].RemoveAt(j);
-                                                j--;
                                             }
-                                            else
-                                            {
-                                                _dictForCommitsPMR[IdAdress].RemoveAt(j);
-                                                j--;
-                                            }
+                                            _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                            j--;
                                         }
 
 
@@ -2294,14 +2546,9 @@ namespace InterraCAN
                                                 if (IdPath != "")
                                                 {
                                                     IdAdress = IdAdress + IdPath;
-                                                    _dictForCommitsPMR[IdAdress].RemoveAt(j);
-                                                    j--;
                                                 }
-                                                else
-                                                {
-                                                    _dictForCommitsPMR[IdAdress].RemoveAt(j);
-                                                    j--;
-                                                }
+                                                _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                                j--;
                                             }
                                         }
                                         else
@@ -2309,14 +2556,9 @@ namespace InterraCAN
                                             if (IdPath != "")
                                             {
                                                 IdAdress = IdAdress + IdPath;
-                                                _dictForCommitsPMR[IdAdress].RemoveAt(j);
-                                                j--;
                                             }
-                                            else
-                                            {
-                                                _dictForCommitsPMR[IdAdress].RemoveAt(j);
-                                                j--;
-                                            }
+                                            _dictForCommitsPMR[IdAdress].RemoveAt(j);
+                                            j--;
                                         }
 
 
@@ -2368,7 +2610,7 @@ namespace InterraCAN
                 _dictForCommitsPMR = dictPGN;
             }
             Tab_Charts.IsSelected = true;
-            Tab_Msg.IsSelected = true;
+            //Tab_Msg.IsSelected = true;
             //создаем документы для заполнения формулами, командами, сообщениями и тегами
             string path = _currentFile.FileName + "_J1939.txt";
             string pathCMD = _currentFile.FileName + "_cmd.txt";
@@ -2538,75 +2780,58 @@ namespace InterraCAN
                             if (CANbit < 24 && CAN16ValuesCount < MaxCAN16Values)
                             {
                                 string CANCommand16;
+                                int xLenght;
                                 if (CheckBox_Filter_PGN.IsChecked == true)
+                                // TODO
+                                // вынести переменную х для key.remove (0,x)
                                 {
-                                    CANCommand16 = "CAN" + "16" + "BITR" + Convert.ToString(count16);
-                                    sw.WriteLine(CANCommand16 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
-                                    if (count16 < 5)
-                                    {
-                                        obj.WriteLine("can_r" + Convert.ToString(count16 + 18) + f);
-                                    }
-                                    else if (count16 > 4 && count16 + 27 < 44)
-                                    {
-                                        obj.WriteLine("can16bitr" + Convert.ToString(count16 + 27) + f);
-                                    }
-                                    count16++;
-                                    listTags.Add(CANCommand16 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
-                                    listCommands.Add("mainpackbit " + MyIni.ReadINI("CANCommands", CANCommand16) + ",1");
+                                    xLenght = Convert.ToInt32(key.Remove(0, 6), 16);
                                 }
                                 else
                                 {
-                                    CANCommand16 = "CAN" + "16" + "BITR" + Convert.ToString(count16);
-                                    sw.WriteLine(CANCommand16 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 2), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
-                                    if (count16 < 5)
-                                    {
-                                        obj.WriteLine("can_r" + Convert.ToString(count16 + 18) + f);
-                                    }
-                                    else if (count16 > 4 && count16 + 27 < 44)
-                                    {
-                                        obj.WriteLine("can16bitr" + Convert.ToString(count16 + 27) + f);
-                                    }
-                                    count16++;
-                                    listTags.Add(CANCommand16 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 2), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
-                                    listCommands.Add("mainpackbit " + MyIni.ReadINI("CANCommands", CANCommand16) + ",1");
+                                    xLenght = Convert.ToInt32(key.Remove(0, 2), 16);
                                 }
+
+                                CANCommand16 = "CAN" + "16" + "BITR" + Convert.ToString(count16);
+                                sw.WriteLine(CANCommand16 + " " + Convert.ToString(xLenght) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                if (count16 < 5)
+                                {
+                                    obj.WriteLine("can_r" + Convert.ToString(count16 + 18) + f);
+                                }
+                                else if (count16 > 4 && count16 + 27 < 44)
+                                {
+                                    obj.WriteLine("can16bitr" + Convert.ToString(count16 + 27) + f);
+                                }
+                                count16++;
+                                listTags.Add(CANCommand16 + " " + Convert.ToString(xLenght) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                listCommands.Add("mainpackbit " + MyIni.ReadINI("CANCommands", CANCommand16) + ",1");
                                 CAN16ValuesCount++;
                             }
                             else if (CANbit > 24 && CAN32ValuesCount < MaxCAN32Values)
                             {
                                 string CANCommand32;
+                                int xLenght;
                                 if (CheckBox_Filter_PGN.IsChecked == true)
                                 {
-                                    CANCommand32 = "CAN" + "32" + "BITR" + Convert.ToString(count32);
-                                    sw.WriteLine(CANCommand32 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
-                                    if (count32 < 5)
-                                    {
-                                        obj.WriteLine("can_r" + Convert.ToString(count32 + 23) + f);
-                                    }
-                                    else if (count32 > 4 && count32 + 91 < 106)
-                                    {
-                                        obj.WriteLine("can32bitr" + Convert.ToString(count32 + 91) + f);
-                                    }
-                                    count32++;
-                                    listTags.Add(CANCommand32 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 6), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
-                                    listCommands.Add("mainpackbit " + MyIni.ReadINI("CANCommands", CANCommand32) + ",1");
+                                    xLenght = Convert.ToInt32(key.Remove(0, 6), 16);
                                 }
                                 else
                                 {
-                                    CANCommand32 = "CAN" + "32" + "BITR" + Convert.ToString(count32);
-                                    sw.WriteLine(CANCommand32 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 2), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
-                                    if (count32 < 5)
-                                    {
-                                        obj.WriteLine("can_r" + Convert.ToString(count32 + 23) + f);
-                                    }
-                                    else if (count32 > 4 && count32 + 91 < 106)
-                                    {
-                                        obj.WriteLine("can32bitr" + Convert.ToString(count32 + 91) + f);
-                                    }
-                                    count32++;
-                                    listTags.Add(CANCommand32 + " " + Convert.ToString(Convert.ToInt32(key.Remove(0, 2), 16)) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
-                                    listCommands.Add("mainpackbit " + MyIni.ReadINI("CANCommands", CANCommand32) + ",1");
+                                    xLenght = Convert.ToInt32(key.Remove(0, 2), 16);
                                 }
+                                CANCommand32 = "CAN" + "32" + "BITR" + Convert.ToString(count32);
+                                sw.WriteLine(CANCommand32 + " " + Convert.ToString(xLenght) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                if (count32 < 5)
+                                {
+                                    obj.WriteLine("can_r" + Convert.ToString(count32 + 23) + f);
+                                }
+                                else if (count32 > 4 && count32 + 91 < 106)
+                                {
+                                    obj.WriteLine("can32bitr" + Convert.ToString(count32 + 91) + f);
+                                }
+                                count32++;
+                                listTags.Add(CANCommand32 + " " + Convert.ToString(xLenght) + "," + Convert.ToString(Convert.ToInt32(chars.Substring(0, 1)) - 1) + ",0,0,,0,0,0,0");
+                                listCommands.Add("mainpackbit " + MyIni.ReadINI("CANCommands", CANCommand32) + ",1");
                                 CAN32ValuesCount++;
                             }
                         }
@@ -2633,6 +2858,8 @@ namespace InterraCAN
                                         for (int b = 0; b < bitcount; b++)
                                         {
                                             var result = Math.Pow(a, b);
+                                            // TODO
+                                            // вывести общую часть приравнивания f
                                             if (result == 1)
                                             {
                                                 f = f + "can_r" + Convert.ToString(count8) + ":" + Convert.ToString(minbit);
@@ -2773,12 +3000,11 @@ namespace InterraCAN
                 swCMD.WriteLine(listTags[i]);
             }
             swCMD.Close();
+            LB_Result.Items.Add("файл prm успешно обработан.");
+
             #endregion
         }
 
-        private void LB_Uniq_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-        }
 
         private void CB_FilterOneByte_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
@@ -2796,6 +3022,8 @@ namespace InterraCAN
         string _strokeByte1; string _strokeByte5;
         string _strokeByte2; string _strokeByte6;
         string _strokeByte3; string _strokeByte7;
+        // TODO 
+        // поменять на bool (True, False)
         byte[] _bitsByte0 = { 0, 0, 0, 0, 0, 0, 0, 0 };
         byte[] _bitsByte1 = { 0, 0, 0, 0, 0, 0, 0, 0 };
         byte[] _bitsByte2 = { 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -3015,6 +3243,9 @@ namespace InterraCAN
             string strokeAllBytes;
             //берем биты согласно маске
             #region add index
+            // TODO
+            // сделать цикл для каждого байта
+            // x = [indexByte0, indexByte1, indexByte2]
             for (int i = 0; i < listAllBytes[0].Length; i++)
             {
                 if (listAllBytes[0][i] == 1)
@@ -3091,6 +3322,9 @@ namespace InterraCAN
 
             for (int i = 0; i < _messages[_selectedID].Count; i++)
             {
+                // TOOD
+                // перместить в цикл
+                //x = _messages[_selectedID][i][0], _messages[_selectedID][i][1]
                 //берем байты с сообщения
                 strokeByte0 = String.Join(String.Empty, _messages[_selectedID][i][0].Select(c => Convert.ToString(Convert.ToInt32(c.ToString(), 16), 2).PadLeft(4, '0')));
                 strokeByte1 = String.Join(String.Empty, _messages[_selectedID][i][1].Select(c => Convert.ToString(Convert.ToInt32(c.ToString(), 16), 2).PadLeft(4, '0')));
@@ -3114,10 +3348,6 @@ namespace InterraCAN
                     {
                         strokeBit0 = strokeByte0.Substring(Convert.ToInt32(indexByte0.Substring(v, 1)), 1) + strokeBit0;
                     }
-                    //while (strokeBit0.Length <8)
-                    //{
-                    //    strokeBit0 = "0" + strokeBit0;
-                    //}
                     strokeByte0 = strokeBit0;
                     while (strokeByte0.Length != 8)
                     {
@@ -3258,6 +3488,12 @@ namespace InterraCAN
                 if (RadioButtonLE.IsChecked == true)
                 {
 
+                    //switch (strokeAllBytes.Length)
+                    //{
+                    //    case <=2:
+                    //        break;
+                    //}
+
                     if (strokeAllBytes.Length <= 2)
                     {
                         reversedBytes = (Convert.ToByte(strokeAllBytes, 16));
@@ -3350,7 +3586,295 @@ namespace InterraCAN
             Array.Reverse(chars);
             return new string(chars);
         }
-    }
+        private void Checks_Checked(object sender, RoutedEventArgs e)
+        {
+            ViewItems();
+        }
 
+        private void ToolTip_Opened(object sender, RoutedEventArgs e)
+        {
+            var item = VisualTreeHelper.HitTest(LB_Uniq, Mouse.GetPosition(LB_Uniq)).VisualHit;
+            // find ListViewItem (or null)
+            while (item != null && !(item is ListBoxItem))
+                item = VisualTreeHelper.GetParent(item);
+
+            if (item != null)
+            {
+                int i = LB_Uniq.Items.IndexOf(((ListBoxItem)item).DataContext);
+                //label.Content = string.Format("I'm on item {0}", i);
+                if (_commits.ContainsKey(i))
+                {
+                    Tb_ToolTip.Text = "";
+                    Tb_ToolTip.Text = _commits[i];
+                    if (Tb_ToolTip.Text == "")
+                    {
+                        TT_Uniq.IsOpen = false;
+                        return;
+                    }
+                }
+                else
+                {
+                    TT_Uniq.IsOpen = false;
+                    return;
+                }
+            }
+            else
+            {
+                TT_Uniq.IsOpen = false;
+                return;
+            }
+        }
+
+
+        bool _flagEvent;
+        int EventId;
+        private void LB_Uniq_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            //e.Handled = true;
+
+            if (Keyboard.IsKeyDown(Key.LeftAlt) || Keyboard.IsKeyDown(Key.RightAlt))
+            {
+                _flagEvent = true;
+                myPopup.IsOpen = true;
+                var item = VisualTreeHelper.HitTest(LB_Uniq, Mouse.GetPosition(LB_Uniq)).VisualHit;
+                // find ListViewItem (or null)
+                while (item != null && !(item is ListBoxItem))
+                    item = VisualTreeHelper.GetParent(item);
+                if (item != null)
+                {
+                    TB_Commit.Clear();
+
+                    int i = LB_Uniq.Items.IndexOf(((ListBoxItem)item).DataContext);
+                    //label.Content = string.Format("I'm on item {0}", i);
+                    EventId = i;
+                    if (_commits.ContainsKey(i))
+                    {
+                        TB_Commit.Text = _commits[i];
+
+                    }
+                }
+            }
+        }
+        public List<float> SmoothingData(List<float> mass)
+        {
+            // For np = 5 = 5 data points
+            //Convert.ToInt32(string.Concat(oneWord.Where(Char.IsDigit)))
+            if (CB_FilterAllCharts.SelectedIndex > 0)
+            {
+                string item = CB_FilterAllCharts.SelectedItem.ToString();
+                float h = /*Convert.ToSingle(3)*/ Convert.ToSingle(string.Concat(item.Where(Char.IsDigit)));
+                int hp = Convert.ToInt32(h / 2);
+                float sum;
+                int min = 0; int max = 25;
+                int c = 0;
+                int m = 0;
+                //var cc = mass[1..15];
+                if (h < mass.Count)
+                {
+                    for (int i = 0; i < mass.Count; i++)
+                    {
+                        sum = 0;
+                        if (i - hp < 0)
+                        {
+                            var array = mass.ToArray()[0..(i + hp)];
+                            sum = array.Sum() / array.Length;
+                        }
+                        if (i - hp >= 0 && i <= (mass.Count - 1 - hp))
+                        {
+                            var array = mass.ToArray()[(i - hp)..(i + hp)];
+                            sum = array.Sum() / array.Length;
+
+                        }
+                        if (i > (mass.Count - 1 - hp))
+                        {
+                            var array = mass.ToArray()[(i - hp)..(mass.Count - 1)];
+                            sum = array.Sum() / array.Length;
+
+                        }
+
+                        mass[i] = sum;
+                        //if (i > hp - 1 && i < mass.Count - hp)
+                        //{
+                        //    for (int j = -Convert.ToInt32(hp); j < hp + 1; j++)
+                        //    {
+                        //        sum += mass[i + j];
+                        //    }
+                        //    //mass[i] = (mass[i - 1] + mass[i] + mass[i + 1]) / h;
+                        //    mass[i] = sum / (h + 1);
+                        //}
+                        //else if (i < hp)
+                        //{
+                        //    if (c + Convert.ToInt32(hp) < Convert.ToInt32(h))
+                        //    {
+                        //        for (int x = 0; x < c; x++)
+                        //        {
+                        //            sum += mass[x];
+                        //        }
+                        //        c++;
+                        //    }
+                        //    for (int j = 0; j < hp + 1; j++)
+                        //    {
+                        //        sum += mass[i + j];
+                        //    }
+                        //    mass[i] = sum / (hp + c);
+                        //}
+                        //else
+                        //{
+                        //    if (m + Convert.ToInt32(hp) < Convert.ToInt32(h))
+                        //    {
+                        //        for (int x = 0; x < m; x++)
+                        //        {
+                        //            sum += mass[mass.Count - Convert.ToInt32(hp) + x];
+                        //        }
+                        //        m++;
+                        //    }
+                        //    for (int j = 0; j < Convert.ToInt32(hp) + 1; j++)
+                        //    {
+                        //        sum += mass[i + j - Convert.ToInt32(hp)];
+                        //    }
+                        //    mass[i] = sum / (hp + m);
+                        //}
+                    }
+                }
+
+            }
+            return mass;
+        }
+        public List<float> NoiseReduction(List<float> src, int severity = 1)
+        {
+            for (int i = 1; i < src.Count; i++)
+            {
+                //---------------------------------------------------------------avg
+                var start = (i - severity > 0 ? i - severity : 0);
+                var end = (i + severity < src.Count ? i + severity : src.Count);
+
+                float sum = 0;
+
+                for (int j = start; j < end; j++)
+                {
+                    sum += src[j];
+                }
+
+                var avg = sum / (end - start);
+                //---------------------------------------------------------------
+                src[i] = avg;
+
+            }
+            return src;
+        }
+
+        private void CB_FilterAllCharts_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            TabControl_Analize_SelectionChanged(sender, e);
+        }
+
+        private void LB_Messages_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            e.Handled = true;
+        }
+
+        private void Btn_StartSearch_Click(object sender, RoutedEventArgs e)
+        {
+            var timing = _files.Split("\r").ToList();
+            timing.RemoveAt(0);
+            timing.RemoveAt(0);
+            List<string> adresses = new List<string>();
+            List<string> distinctAdresses = new List<string>();
+            //adresses.AddRange(timing);
+            string startTime = TB_StartTime.Text;
+            string endTime = TB_EndTime.Text;
+            for (int i = 0; i < timing.Count; i++)
+            {
+                try
+                {
+                    timing[i] = timing[i].Remove(timing[i].IndexOf("."));
+                    //todo
+                }
+                catch (Exception)
+                {
+                    timing.RemoveAt(i);
+                }
+            }
+            string searchStart = timing.Find(t => t.Contains(startTime));
+            string searchEnd = timing.Find(t => t.Contains(endTime));
+            string charStart = string.Concat(searchStart.Where(Char.IsDigit));
+            string charEnd = string.Concat(searchEnd.Where(Char.IsDigit));
+            if (charStart != startTime)
+            {
+                while (charStart != startTime)
+                {
+                    startTime = Convert.ToString(Convert.ToInt32(startTime) + 1);
+                    searchStart = timing.Find(t => t.Contains(startTime));
+                    charStart = string.Concat(searchStart.Where(Char.IsDigit));
+                }
+            }
+            if (charEnd != endTime)
+            {
+                while (charEnd != endTime)
+                {
+                    endTime = Convert.ToString(Convert.ToInt32(endTime) + 1);
+                    searchEnd = timing.Find(t => t.Contains(endTime));
+                    charEnd = string.Concat(searchEnd.Where(Char.IsDigit));
+                }
+            }
+
+            int start = _files.IndexOf(searchStart + ".");
+            int end = _files.IndexOf(searchEnd + ".");
+            end = _files.IndexOf("\n", end + 1);
+            string files = _files.Remove(end);
+            files = files.Remove(0, start);
+            //dataSheets[i] = Regex.Replace(dataSheets[i], @"\s+", " ");
+            files = " " + Regex.Replace(files, "  ", " ");
+            files = Regex.Replace(files, "  ", "");
+            adresses = files.Split('\n').ToList();
+            adresses.RemoveAt(0);
+            for (int i = 0; i < adresses.Count; i++)
+            {
+                adresses[i] = adresses[i].Remove(0, adresses[i].IndexOf("0x"));
+                distinctAdresses.Add(adresses[i].Remove(adresses[i].IndexOf(" ")));
+            }
+            distinctAdresses = distinctAdresses.Distinct().ToList();
+            TB_Adresses.Text = "";
+            for (int i = 0; i < distinctAdresses.Count; i++)
+            {
+                var distinct = adresses.FindAll(d => d.Contains(distinctAdresses[i])).ToList();
+                distinct = distinct.Distinct().ToList();
+                if (distinct.Count > 1)
+                {
+                    TB_Adresses.Text = TB_Adresses.Text + distinctAdresses[i] + " ";
+                }
+                else
+                {
+                    if (RB_1.IsChecked == true && TB_Search1.Text != "" && TB_Search2.Text != "")
+                    {
+
+                    }
+                    else if (RB_2.IsChecked == true && TB_Search3.Text != "")
+                    {
+
+                    }
+                }
+            }
+
+            TB_Search.Text = files;
+            TB_Search.Visibility = Visibility.Visible;
+
+        }
+
+        private void RB_1_Unchecked(object sender, RoutedEventArgs e)
+        {
+            SP_Check1.Visibility = Visibility.Collapsed;
+            SP_Check2.Visibility = Visibility.Visible;
+        }
+
+        private void RB_1_Checked(object sender, RoutedEventArgs e)
+        {
+            if (SP_Check1 != null)
+            {
+                SP_Check1.Visibility = Visibility.Visible;
+                SP_Check2.Visibility = Visibility.Collapsed;
+            }
+        }
+    }
 }
 
